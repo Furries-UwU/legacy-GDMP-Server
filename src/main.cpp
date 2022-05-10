@@ -51,7 +51,9 @@ int main()
                 memcpy(event.peer->data, &lastNetID, sizeof(unsigned int));
                 peerReference[lastNetID++] = event.peer;
 
-                sendPacket(event.peer, {0x01});
+                Packet packet = Packet((uint8_t)0x01);
+
+                sendPacket(event.peer, packet, sizeof(packet));
                 break;
             }
 
