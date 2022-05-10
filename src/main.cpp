@@ -1,15 +1,17 @@
 #include "main.hpp"
 
 #pragma pack(push, 1)
-struct Packet {
+struct Packet
+{
     uint8_t type;
-    uint8_t* data;
+    uint8_t *data;
 };
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct PlayerData {
-    char* username;
+struct PlayerData
+{
+    char *username;
     int ship;
     int ball;
     int bird;
@@ -23,16 +25,17 @@ struct PlayerData {
 #pragma pack(pop)
 
 // UUID, PEER
-std::unordered_map<unsigned int, ENetPeer*> peerReference;
+std::unordered_map<unsigned int, ENetPeer *> peerReference;
 // Level ID, UUID
 std::map<std::string, std::vector<unsigned int>> playerLevelList;
 
 unsigned int lastNetID = 0;
 
-void sendPacket(ENetPeer* peer, Packet data) {
-    ENetPacket* packet = enet_packet_create(nullptr,
-        sizeof(data),
-        ENET_PACKET_FLAG_RELIABLE);
+void sendPacket(ENetPeer *peer, Packet data)
+{
+    ENetPacket *packet = enet_packet_create(nullptr,
+                                            sizeof(data),
+                                            ENET_PACKET_FLAG_RELIABLE);
 
     std::memcpy(packet->data, &data, sizeof(data));
 
@@ -40,7 +43,8 @@ void sendPacket(ENetPeer* peer, Packet data) {
         enet_packet_destroy(packet);
 }
 
-int main() {
+int main()
+{
     if (enet_initialize() != 0)
     {
         fmt::print("An error occurred while initializing ENet.\n");
@@ -49,16 +53,16 @@ int main() {
     atexit(enet_deinitialize);
 
     ENetAddress address;
-    ENetHost* server;
+    ENetHost *server;
 
     address.host = ENET_HOST_ANY;
     address.port = 23973;
 
     server = enet_host_create(&address,
-        1024,
-        1,
-        0,
-        0);
+                              1024,
+                              1,
+                              0,
+                              0);
 
     if (server == NULL)
     {
@@ -66,10 +70,12 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    while (true) {
+    while (true)
+    {
         ENetEvent event;
 
-        while (enet_host_service(server, &event, 0) > 0) {
+        while (enet_host_service(server, &event, 0) > 0)
+        {
             switch (event.type)
             {
             case ENET_EVENT_TYPE_CONNECT:
@@ -81,37 +87,37 @@ int main() {
                 memcpy(event.peer->data, &lastNetID, sizeof(unsigned int));
                 peerReference[lastNetID++] = event.peer;
 
-                sendPacket(event.peer, { 0x01 });
+                sendPacket(event.peer, {0x01});
                 break;
             }
 
             case ENET_EVENT_TYPE_RECEIVE:
             {
-                unsigned int netID = *reinterpret_cast<unsigned int*>(event.peer->data);
-                Packet packet = *reinterpret_cast<Packet*>(event.packet->data);
-				
+                unsigned int netID = *reinterpret_cast<unsigned int *>(event.peer->data);
+                Packet packet = *reinterpret_cast<Packet *>(event.packet->data);
+
                 enet_packet_destroy(event.packet);
                 break;
             }
 
             case ENET_EVENT_TYPE_DISCONNECT:
             {
-                unsigned int netID = *reinterpret_cast<unsigned int*>(event.peer->data);
+                unsigned int netID = *reinterpret_cast<unsigned int *>(event.peer->data);
 
                 peerReference.erase(netID);
 
-                for (auto& pair : playerLevelList) {
-                    std::vector<unsigned int>& vec = pair.second;
-                    vec.erase(std::remove_if(vec.begin(), vec.end(), [netID](unsigned int id) {
-                        return id == netID;
-                        }), vec.end());
+                for (auto &pair : playerLevelList)
+                {
+                    std::vector<unsigned int> &vec = pair.second;
+                    vec.erase(std::remove_if(vec.begin(), vec.end(), [netID](unsigned int id)
+                                             { return id == netID; }),
+                              vec.end());
                 }
                 break;
             }
             }
         }
     }
-
 
     enet_host_destroy(server);
     return 0;
