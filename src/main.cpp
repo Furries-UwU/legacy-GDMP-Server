@@ -59,8 +59,19 @@ int main()
 
             case ENET_EVENT_TYPE_RECEIVE:
             {
-                unsigned int netID = *reinterpret_cast<unsigned int *>(event.peer->data);
-                Packet packet = *reinterpret_cast<Packet *>(event.packet->data);
+                const unsigned int netID = *reinterpret_cast<unsigned int *>(event.peer->data);
+                const auto packet = *reinterpret_cast<Packet *>(event.packet->data);
+
+                switch (packet.type)
+                {
+                case 0x01:
+                {
+                    PlayerData playerData = json((char*) packet.data).get<PlayerData>();
+
+                    fmt::print("{} connected.\n", playerData.username);
+                    break;
+                }
+                }
 
                 enet_packet_destroy(event.packet);
                 break;

@@ -6,4 +6,5 @@
 #include <string>
 #include <map>
 
+#include "struct.hpp"
 #include "packet.hpp"
