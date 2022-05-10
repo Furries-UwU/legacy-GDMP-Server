@@ -1,47 +1,11 @@
 #include "main.hpp"
 
-#pragma pack(push, 1)
-struct Packet
-{
-    uint8_t type;
-    uint8_t *data;
-};
-#pragma pack(pop)
-
-#pragma pack(push, 1)
-struct PlayerData
-{
-    char *username;
-    int ship;
-    int ball;
-    int bird;
-    int dart;
-    int robot;
-    int spider;
-    int glow;
-    int color;
-    int color2;
-};
-#pragma pack(pop)
-
 // UUID, PEER
 std::unordered_map<unsigned int, ENetPeer *> peerReference;
 // Level ID, UUID
 std::map<std::string, std::vector<unsigned int>> playerLevelList;
 
 unsigned int lastNetID = 0;
-
-void sendPacket(ENetPeer *peer, Packet data)
-{
-    ENetPacket *packet = enet_packet_create(nullptr,
-                                            sizeof(data),
-                                            ENET_PACKET_FLAG_RELIABLE);
-
-    std::memcpy(packet->data, &data, sizeof(data));
-
-    if (enet_peer_send(peer, 0, packet) != 0)
-        enet_packet_destroy(packet);
-}
 
 int main()
 {

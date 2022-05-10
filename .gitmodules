@@ -1,7 +1,3 @@
-[submodule "external/enet"]
-	path = external/enet
-	url = https://github.com/xhayper/enet.git
-	branch = 1.3.17-cmake-fix
-[submodule "external/fmt"]
-	path = external/fmt
-	url = https://github.com/fmtlib/fmt.git
+[submodule "external/GDMP-Shared"]
+	path = external/GDMP-Shared
+	url = https://github.com/Furries-UwU/GDMP-Shared.git
