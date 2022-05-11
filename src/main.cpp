@@ -51,10 +51,9 @@ int main()
                 memcpy(event.peer->data, &lastNetID, sizeof(unsigned int));
                 peerReference[lastNetID++] = event.peer;
 
-                Packet packet;
-				packet.type = 0x1;
+                Packet packet = Packet((uint8_t) 0x01, 0, nullptr);
 
-                sendPacket(event.peer, packet, 10);
+                sendPacket(event.peer, packet);
                 break;
             }
 
@@ -64,9 +63,9 @@ int main()
                 fmt::print("Length: {}\n", event.packet->dataLength);
 
 
-                fmt::print("Hex:");
+                fmt::print("ASCII:");
                 for (int x = 0; x < event.packet->dataLength; x++) {
-                    fmt::print(" {:#04x}", event.packet->data[x]);
+                    fmt::print(" {}", event.packet->data[x]);
                 }
 
                 fmt::print("\n");
