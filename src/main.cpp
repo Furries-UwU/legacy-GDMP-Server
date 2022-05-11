@@ -51,28 +51,25 @@ int main()
                 memcpy(event.peer->data, &lastNetID, sizeof(unsigned int));
                 peerReference[lastNetID++] = event.peer;
 
-                Packet packet = Packet((uint8_t)0x01);
+                Packet packet;
+				packet.type = 0x1;
 
-                sendPacket(event.peer, packet, sizeof(packet));
+                sendPacket(event.peer, packet, 10);
                 break;
             }
 
             case ENET_EVENT_TYPE_RECEIVE:
             {
-                const unsigned int netID = *reinterpret_cast<unsigned int *>(event.peer->data);
-                const auto packet = *reinterpret_cast<Packet *>(event.packet->data);
+				
+                fmt::print("Length: {}\n", event.packet->dataLength);
 
-                switch (packet.type)
-                {
-                case 0x01:
-                {
-                    PlayerData playerData = json((char*) packet.data).get<PlayerData>();
 
-                    fmt::print("{} connected.\n", playerData.username);
-                    break;
-                }
+                fmt::print("Hex:");
+                for (int x = 0; x < event.packet->dataLength; x++) {
+                    fmt::print(" {:#04x}", event.packet->data[x]);
                 }
 
+                fmt::print("\n");
                 enet_packet_destroy(event.packet);
                 break;
             }
