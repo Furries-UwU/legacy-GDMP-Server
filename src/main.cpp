@@ -7,6 +7,16 @@ std::map<std::string, std::vector<unsigned int>> playerLevelList;
 
 unsigned int lastNetID = 0;
 
+void playerLeaveLevel(unsigned int netID) {
+    for (auto& pair : playerLevelList)
+    {
+        std::vector<unsigned int>& vec = pair.second;
+        vec.erase(std::remove_if(vec.begin(), vec.end(), [netID](unsigned int id)
+            { return id == netID; }),
+            vec.end());
+    }
+}
+
 int main()
 {
     if (enet_initialize() != 0)
@@ -44,24 +54,22 @@ int main()
             {
             case ENET_EVENT_TYPE_CONNECT:
             {
-                fmt::print("Someone joined! Holy shit!\n");
-
                 event.peer->data = new unsigned char[sizeof(unsigned int)];
 
                 memcpy(event.peer->data, &lastNetID, sizeof(unsigned int));
                 peerReference[lastNetID++] = event.peer;
 
-                Packet packet = Packet(0x01);
+                Packet packet = Packet(PLAYER_DATA);
                 packet.send(event.peer);
                 break;
             }
 
             case ENET_EVENT_TYPE_RECEIVE:
             {
+                unsigned int netID = *reinterpret_cast<unsigned int*>(event.peer->data);
                 auto packet = Packet(event.packet);
 
                 fmt::print("Packet Length: {}\n", event.packet->dataLength);
-
 
                 fmt::print("Hex:");
                 for (int x = 0; x < event.packet->dataLength; x++) {
@@ -72,11 +80,16 @@ int main()
 
                 fmt::print("Packet Type: {}\nPacket Data Length: {}\n", packet.type, packet.length);
 
-                fmt::print("ASCII: {}", packet.data);
-                fmt::print("\n");
+                if (packet.length > 0) {
+                    fmt::print("ASCII: {}\n\n", packet.data);
+                }
 
                 switch (packet.type) {
-                    case 0x01: {
+                    case PLAYER_DATA: {
+                        break;
+                    }
+                    case LEAVE_LEVEL: {
+                        playerLeaveLevel(netID);
                         break;
                     }
                 }
@@ -90,14 +103,7 @@ int main()
                 unsigned int netID = *reinterpret_cast<unsigned int *>(event.peer->data);
 
                 peerReference.erase(netID);
-
-                for (auto &pair : playerLevelList)
-                {
-                    std::vector<unsigned int> &vec = pair.second;
-                    vec.erase(std::remove_if(vec.begin(), vec.end(), [netID](unsigned int id)
-                                             { return id == netID; }),
-                              vec.end());
-                }
+                playerLeaveLevel(netID);
                 break;
             }
             }

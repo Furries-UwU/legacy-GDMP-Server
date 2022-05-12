@@ -8,3 +8,4 @@
 
 #include "struct.hpp"
 #include "packet.hpp"
+#include "enum.hpp"
