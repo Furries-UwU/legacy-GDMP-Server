@@ -58,25 +58,25 @@ int main()
 
             case ENET_EVENT_TYPE_RECEIVE:
             {
-				
-                fmt::print("Length: {}\n", event.packet->dataLength);
+                auto packet = Packet(event.packet);
+
+                fmt::print("Packet Length: {}\n", event.packet->dataLength);
 
 
-                fmt::print("Numerical:");
+                fmt::print("Hex:");
                 for (int x = 0; x < event.packet->dataLength; x++) {
-                    fmt::print(" {}", event.packet->data[x]);
+                    fmt::print(" {:#04X}", packet[x]);
                 }
 
                 fmt::print("\n");
 
-                auto packet = *reinterpret_cast<Packet*>(event.packet->data);
-
                 fmt::print("Packet Type: {}\nPacket Data Length: {}\n", packet.type, packet.length);
+
+                fmt::print("ASCII: {}", packet.data);
+                fmt::print("\n");
 
                 switch (packet.type) {
                     case 0x01: {
-                        fmt::print("Char data: {}", packet.data);
-                        fmt::print("\n");
                         break;
                     }
                 }
