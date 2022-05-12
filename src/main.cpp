@@ -51,9 +51,8 @@ int main()
                 memcpy(event.peer->data, &lastNetID, sizeof(unsigned int));
                 peerReference[lastNetID++] = event.peer;
 
-                Packet packet = Packet((uint8_t) 0x01, 0, nullptr);
-
-                sendPacket(event.peer, packet);
+                Packet packet = Packet(0x01);
+                packet.send(event.peer);
                 break;
             }
 
@@ -63,12 +62,28 @@ int main()
                 fmt::print("Length: {}\n", event.packet->dataLength);
 
 
-                fmt::print("ASCII:");
+                fmt::print("Numerical:");
                 for (int x = 0; x < event.packet->dataLength; x++) {
                     fmt::print(" {}", event.packet->data[x]);
                 }
 
                 fmt::print("\n");
+
+                auto packet = *reinterpret_cast<Packet*>(event.packet->data);
+
+                fmt::print("Packet Data Length: {}\n", packet.length);
+
+                switch (packet.type) {
+                    case 0x01: {
+                        fmt::print("Char data:");
+                        for (int x = 0; x < 16; x++) {
+                            fmt::print(" {}", packet.data[x]);
+                        }
+                        fmt::print("\n");
+                        break;
+                    }
+                }
+				
                 enet_packet_destroy(event.packet);
                 break;
             }
