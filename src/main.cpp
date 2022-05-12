@@ -65,7 +65,7 @@ int main()
 
                 fmt::print("Hex:");
                 for (int x = 0; x < event.packet->dataLength; x++) {
-                    fmt::print(" {:#04X}", packet[x]);
+                    fmt::print(" {:#04x}", packet[x]);
                 }
 
                 fmt::print("\n");
