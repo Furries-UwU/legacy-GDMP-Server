@@ -71,14 +71,11 @@ int main()
 
                 auto packet = *reinterpret_cast<Packet*>(event.packet->data);
 
-                fmt::print("Packet Data Length: {}\n", packet.length);
+                fmt::print("Packet Type: {}\nPacket Data Length: {}\n", packet.type, packet.length);
 
                 switch (packet.type) {
                     case 0x01: {
-                        fmt::print("Char data:");
-                        for (int x = 0; x < 16; x++) {
-                            fmt::print(" {}", packet.data[x]);
-                        }
+                        fmt::print("Char data: {}", packet.data);
                         fmt::print("\n");
                         break;
                     }
