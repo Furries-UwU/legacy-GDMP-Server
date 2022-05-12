@@ -3,7 +3,7 @@
 // UUID, PEER
 std::unordered_map<unsigned int, ENetPeer *> peerReference;
 // Level ID, UUID
-std::map<std::string, std::vector<unsigned int>> playerLevelList;
+std::unordered_map<int, std::vector<unsigned int>> playerLevelList;
 
 unsigned int lastNetID = 0;
 
@@ -86,6 +86,12 @@ int main()
 
                 switch (packet.type) {
                     case PLAYER_DATA: {
+                        break;
+                    }
+                    case JOIN_LEVEL: {
+                        int levelId = Util::uint8_t_to_int(packet.data);
+                        fmt::print("Level ID: {}", levelId);
+                        playerLevelList[levelId].push_back(netID);
                         break;
                     }
                     case LEAVE_LEVEL: {
