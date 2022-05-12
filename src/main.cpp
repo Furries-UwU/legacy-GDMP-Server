@@ -69,20 +69,11 @@ int main()
                 unsigned int netID = *reinterpret_cast<unsigned int*>(event.peer->data);
                 auto packet = Packet(event.packet);
 
-                fmt::print("Packet Length: {}\n", event.packet->dataLength);
-
-                fmt::print("Hex:");
+                fmt::print("Peer {} -> Host\nPacket Length: {}\nPacket Type: {}\nPacket's Data Length: {}\nHex:", netID, event.packet->dataLength, packet.type, packet.length);
                 for (int x = 0; x < event.packet->dataLength; x++) {
                     fmt::print(" {:#04x}", packet[x]);
                 }
-
-                fmt::print("\n");
-
-                fmt::print("Packet Type: {}\nPacket Data Length: {}\n", packet.type, packet.length);
-
-                if (packet.length > 0) {
-                    fmt::print("ASCII: {}\n\n", packet.data);
-                }
+                fmt::print("\n\n");
 
                 switch (packet.type) {
                 case PLAYER_DATA: {
