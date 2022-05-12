@@ -1,7 +1,7 @@
 #include "main.hpp"
 
 // UUID, PEER
-std::unordered_map<unsigned int, ENetPeer *> peerReference;
+std::unordered_map<unsigned int, ENetPeer*> peerReference;
 // Level ID, UUID
 std::unordered_map<int, std::vector<unsigned int>> playerLevelList;
 
@@ -27,16 +27,16 @@ int main()
     atexit(enet_deinitialize);
 
     ENetAddress address;
-    ENetHost *server;
+    ENetHost* server;
 
     address.host = ENET_HOST_ANY;
     address.port = 23973;
 
     server = enet_host_create(&address,
-                              1024,
-                              1,
-                              0,
-                              0);
+        1024,
+        1,
+        0,
+        0);
 
     if (server == NULL)
     {
@@ -85,28 +85,28 @@ int main()
                 }
 
                 switch (packet.type) {
-                    case PLAYER_DATA: {
-                        break;
-                    }
-                    case JOIN_LEVEL: {
-                        int levelId = Util::uint8_t_to_int(packet.data);
-                        fmt::print("Level ID: {}", levelId);
-                        playerLevelList[levelId].push_back(netID);
-                        break;
-                    }
-                    case LEAVE_LEVEL: {
-                        playerLeaveLevel(netID);
-                        break;
-                    }
+                case PLAYER_DATA: {
+                    break;
                 }
-				
+                case JOIN_LEVEL: {
+                    uint32_t levelId = Util::uint8_t_to_uint32_t(packet.data);
+                    fmt::print("Level ID: {}", levelId);
+                    playerLevelList[levelId].push_back(netID);
+                    break;
+                }
+                case LEAVE_LEVEL: {
+                    playerLeaveLevel(netID);
+                    break;
+                }
+                }
+
                 enet_packet_destroy(event.packet);
                 break;
             }
 
             case ENET_EVENT_TYPE_DISCONNECT:
             {
-                unsigned int netID = *reinterpret_cast<unsigned int *>(event.peer->data);
+                unsigned int netID = *reinterpret_cast<unsigned int*>(event.peer->data);
 
                 peerReference.erase(netID);
                 playerLeaveLevel(netID);
