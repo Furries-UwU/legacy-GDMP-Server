@@ -79,7 +79,6 @@ void playerLeaveLevel(unsigned int netID) {
     for (const auto& entry : levelList) {
         auto playerList = playerLevelList[entry.first];
 
-        // remove peerID from playerList
         auto it = std::find(playerList.begin(), playerList.end(), netID);
         if (it != playerList.end()) {
             playerList.erase(it);
