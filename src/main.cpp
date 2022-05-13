@@ -51,6 +51,7 @@ void updatePlayerData(unsigned int netID, ServerPlayerData playerData) {
 
     ClientPlayerData clientPlayerData = {
         netID,
+        playerData.cube,
         playerData.ship,
         playerData.ball,
         playerData.bird,
@@ -176,7 +177,7 @@ int main()
                 }
 
                 case RENDER_DATA: {
-                    //if (playerDataList.find(netID) == playerDataList.end()) break;
+                    if (playerDataList.find(netID) == playerDataList.end()) break;
 
                     RenderData renderData = *reinterpret_cast<RenderData*>(packet.data);
 
