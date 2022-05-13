@@ -9,19 +9,17 @@ std::unordered_map<int, std::vector<unsigned int>> playerLevelList;
 
 unsigned int lastNetID = 0;
 
-std::unordered_map<int, std::vector<unsigned int, std::allocator<unsigned int>>> getLevelMapWithNetId(unsigned int netId) {
-    auto clonedLevelList = std::unordered_map(playerLevelList);
+std::unordered_map<int, std::vector<unsigned int>> getLevelMapWithNetId(unsigned int netId) {
+    auto clonedLevelList = std::unordered_map<int, std::vector<unsigned int>>(playerLevelList);
 
-    auto it = clonedLevelList.begin();
-    while (it != clonedLevelList.end())
-    {
-        if (std::find(clonedLevelList.begin(), clonedLevelList.end(), netId) != clonedLevelList.end()) {
-            clonedLevelList.erase(it++);
-        }
-        else {
-            ++it;
-        }
-    }
+	for (auto& level : clonedLevelList) {
+		for (auto& player : level.second) {
+			if (player == netId) {
+				level.second.erase(std::remove(level.second.begin(), level.second.end(), netId), level.second.end());
+				break;
+			}
+		}
+	}
 
     return clonedLevelList;
 }
@@ -31,11 +29,9 @@ void updateRenderData(unsigned int netID, RenderData renderData) {
 
     PlayerRenderData playerRenderData = {
         netID,
-        renderData.gamemode,
-        renderData.posX,
-        renderData.posY,
-        renderData.rotation,
-        renderData.flipped,
+        renderData.playerOne,
+        renderData.playerTwo,
+        renderData.visible,
         renderData.dual
     };
 
@@ -55,7 +51,6 @@ void updatePlayerData(unsigned int netID, ServerPlayerData playerData) {
 
     ClientPlayerData clientPlayerData = {
         netID,
-        playerData.username,
         playerData.ship,
         playerData.ball,
         playerData.bird,
@@ -67,15 +62,13 @@ void updatePlayerData(unsigned int netID, ServerPlayerData playerData) {
         playerData.color2
     };
 
-    const std::string jsonData = json(clientPlayerData).dump();
-
     for (const auto& entry : levelList) {
         auto playerList = playerLevelList[entry.first];
 
         for (const auto peerID : playerList) {
             if (peerID == netID) continue;
             ENetPeer* peer = peerReference[peerID];
-            if (peer) Packet(UPDATE_PLAYER_DATA, jsonData.length()+1, reinterpret_cast<uint8_t*>((char *) jsonData.c_str())).send(peer);
+            if (peer) Packet(UPDATE_PLAYER_DATA, sizeof(clientPlayerData), reinterpret_cast<uint8_t*>(&clientPlayerData)).send(peer);
         }
     }
 }
@@ -85,7 +78,13 @@ void playerLeaveLevel(unsigned int netID) {
 
     for (const auto& entry : levelList) {
         auto playerList = playerLevelList[entry.first];
-        playerList.erase(std::remove(playerList.begin(), playerList.end(), netID), playerList.end());
+
+        // remove peerID from playerList
+        auto it = std::find(playerList.begin(), playerList.end(), netID);
+        if (it != playerList.end()) {
+            playerList.erase(it);
+        }
+
 
         for (const auto peerID : playerList) {
             ENetPeer* peer = peerReference[peerID];
@@ -135,9 +134,6 @@ int main()
 
                 memcpy(event.peer->data, &lastNetID, sizeof(unsigned int));
                 peerReference[lastNetID++] = event.peer;
-
-                Packet packet = Packet(PLAYER_DATA);
-                packet.send(event.peer);
                 break;
             }
 
@@ -153,9 +149,9 @@ int main()
                 fmt::print("\n\n");
 
                 switch (packet.type) {
-					
+
                 case PLAYER_DATA: {
-                    playerDataList[netID] = json((char*)packet.data).get<ServerPlayerData>();
+                    ClientPlayerData clientPlayerData = *reinterpret_cast<ClientPlayerData*>(packet.data);
                     updatePlayerData(netID, playerDataList[netID]);
                     break;
                 }
@@ -164,12 +160,15 @@ int main()
                     if (playerDataList.find(netID) == playerDataList.end()) break;
 
                     uint32_t levelId = Util::uint8_t_to_uint32_t(packet.data);
-                    if (playerLevelList.find(levelId) == playerLevelList.end()) playerLevelList[levelId].push_back(netID);
+					
+					auto playerList = playerLevelList[levelId];
+					if (std::find(playerList.begin(), playerList.end(), netID) != playerList.end()) break;
+
 
                     for (auto peerId : playerLevelList[levelId]) {
                         ENetPeer* peer = peerReference[peerId];
                         if (peer) {
-							updatePlayerData(netID, playerDataList[netID]);
+                            updatePlayerData(netID, playerDataList[netID]);
                             Packet(PLAYER_JOIN_LEVEL, 4, reinterpret_cast<uint8_t*>(&netID)).send(peer);
                         }
                     }
@@ -178,18 +177,20 @@ int main()
                 }
 
                 case RENDER_DATA: {
-                    if (playerDataList.find(netID) == playerDataList.end()) break;
+                    //if (playerDataList.find(netID) == playerDataList.end()) break;
 
                     RenderData renderData = *reinterpret_cast<RenderData*>(packet.data);
+
+                    fmt::print("X Pos: {}\nY Pos: {}\n\n", renderData.playerOne.posX, renderData.playerOne.posY);
                     updateRenderData(netID, renderData);
                     break;
                 };
-							
+
                 case LEAVE_LEVEL: {
                     playerLeaveLevel(netID);
                     break;
                 }
-								
+
                 }
 
                 enet_packet_destroy(event.packet);
