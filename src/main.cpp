@@ -58,8 +58,8 @@ void updatePlayerData(unsigned int netID, ServerPlayerData playerData) {
         playerData.robot,
         playerData.spider,
         playerData.glow,
-        playerData.color,
-        playerData.color2
+        playerData.primaryColor,
+        playerData.secondaryColor
     };
 
     for (const auto& entry : levelList) {
