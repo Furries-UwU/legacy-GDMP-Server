@@ -3,7 +3,7 @@
 // PeerId, ENetPeer*
 std::unordered_map<unsigned int, ENetPeer*> peerReference;
 // PeerId, PlayerData
-std::unordered_map<unsigned int, ServerPlayerSkinData> playerDataList;
+std::unordered_map<unsigned int, ServerPlayerData> playerDataList;
 // Level ID, PeerId
 std::unordered_map<int, std::vector<unsigned int>> playerLevelList;
 
@@ -29,7 +29,7 @@ std::unordered_map<int, std::vector<unsigned int, std::allocator<unsigned int>>>
 void updateRenderData(unsigned int netID, RenderData renderData) {
     auto levelList = getLevelMapWithNetId(netID);
 
-    PlayerRenderData renderData = {
+    PlayerRenderData playerRenderData = {
         netID,
         renderData.gamemode,
         renderData.posX,
@@ -45,29 +45,29 @@ void updateRenderData(unsigned int netID, RenderData renderData) {
         for (const auto peerID : playerList) {
             if (peerID == netID) continue;
             ENetPeer* peer = peerReference[peerID];
-            if (peer) Packet(UPDATE_PLAYER_RENDER_DATA, sizeof(renderData), reinterpret_cast<uint8_t*>(&renderData)).send(peer);
+            if (peer) Packet(UPDATE_PLAYER_RENDER_DATA, sizeof(playerRenderData), reinterpret_cast<uint8_t*>(&playerRenderData)).send(peer);
         }
     }
 }
 
-void updateSkinData(unsigned int netID, ServerPlayerSkinData newSkinData) {
+void updatePlayerData(unsigned int netID, ServerPlayerData playerData) {
     auto levelList = getLevelMapWithNetId(netID);
 
-    ClientPlayerSkinData skinData = {
+    ClientPlayerData clientPlayerData = {
         netID,
-        newSkinData.username,
-		newSkinData.ship,
-		newSkinData.ball,
-		newSkinData.bird,
-		newSkinData.dart,
-		newSkinData.robot,
-		newSkinData.spider,
-		newSkinData.glow,
-		newSkinData.color,
-		newSkinData.color2
+        playerData.username,
+        playerData.ship,
+        playerData.ball,
+        playerData.bird,
+        playerData.dart,
+        playerData.robot,
+        playerData.spider,
+        playerData.glow,
+        playerData.color,
+        playerData.color2
     };
 
-    const std::string jsonData = json(skinData).dump();
+    const std::string jsonData = json(clientPlayerData).dump();
 
     for (const auto& entry : levelList) {
         auto playerList = playerLevelList[entry.first];
@@ -75,7 +75,7 @@ void updateSkinData(unsigned int netID, ServerPlayerSkinData newSkinData) {
         for (const auto peerID : playerList) {
             if (peerID == netID) continue;
             ENetPeer* peer = peerReference[peerID];
-            if (peer) Packet(UPDATE_PLAYER_RENDER_DATA, jsonData.length()+1, reinterpret_cast<uint8_t*>((char *) jsonData.c_str())).send(peer);
+            if (peer) Packet(UPDATE_PLAYER_DATA, jsonData.length()+1, reinterpret_cast<uint8_t*>((char *) jsonData.c_str())).send(peer);
         }
     }
 }
@@ -155,7 +155,8 @@ int main()
                 switch (packet.type) {
 					
                 case PLAYER_DATA: {
-                    playerDataList[netID] = json((char*)packet.data).get<ServerPlayerSkinData>();
+                    playerDataList[netID] = json((char*)packet.data).get<ServerPlayerData>();
+                    updatePlayerData(netID, playerDataList[netID]);
                     break;
                 }
 
@@ -168,7 +169,7 @@ int main()
                     for (auto peerId : playerLevelList[levelId]) {
                         ENetPeer* peer = peerReference[peerId];
                         if (peer) {
-							updateSkinData(netID, playerDataList[netID]);
+							updatePlayerData(netID, playerDataList[netID]);
                             Packet(PLAYER_JOIN_LEVEL, 4, reinterpret_cast<uint8_t*>(&netID)).send(peer);
                         }
                     }
