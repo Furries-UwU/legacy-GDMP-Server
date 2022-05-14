@@ -142,18 +142,18 @@ int main()
                     if (std::find(playerLevelList[levelId].begin(), playerLevelList[levelId].end(), netID) != playerLevelList[levelId].end()) break;
 					
                     playerLevelList[levelId].push_back(netID);
-                    updatePlayerData(netID, playerDataList[netID]);
 
                     for (auto peerId : playerLevelList[levelId]) {
 						if (peerId == netID) continue;
 						
                         ENetPeer* peer = peerReference[peerId];
 
-                        Packet(UPDATE_PLAYER_DATA, sizeof(ClientPlayerData), reinterpret_cast<uint8_t*>(&playerDataList[peerId])).send(event.peer);
-
                         if (peer) {
+                            Packet(UPDATE_PLAYER_DATA, sizeof(ClientPlayerData), reinterpret_cast<uint8_t*>(&playerDataList[netID])).send(peer);
                             Packet(PLAYER_JOIN_LEVEL, 4, reinterpret_cast<uint8_t*>(&netID)).send(peer);
-                        }
+                        }							
+                     
+                        Packet(UPDATE_PLAYER_DATA, sizeof(ClientPlayerData), reinterpret_cast<uint8_t*>(&playerDataList[peerId])).send(event.peer);
                     }
 
                     break;
