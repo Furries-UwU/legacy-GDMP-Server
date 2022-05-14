@@ -146,12 +146,8 @@ int main()
 
                     for (auto peerId : playerLevelList[levelId]) {
 						if (peerId == netID) continue;
-						
                         ENetPeer* peer = peerReference[peerId];
-                        if (peer) {
-                            Packet(PLAYER_JOIN_LEVEL, 4, reinterpret_cast<uint8_t*>(&netID)).send(peer);
-                        }
-
+                        Packet(PLAYER_JOIN_LEVEL, 4, reinterpret_cast<uint8_t*>(&netID)).send(peer);
                         Packet(UPDATE_PLAYER_DATA, sizeof(ClientPlayerData), reinterpret_cast<uint8_t*>(&playerDataList[peerId])).send(event.peer);
                     }
 
