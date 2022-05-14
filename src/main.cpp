@@ -40,9 +40,9 @@ void updatePlayerData(unsigned int netID, ServerPlayerData playerData) {
         playerData.dart,
         playerData.robot,
         playerData.spider,
-        playerData.glow,
         playerData.primaryColor,
-        playerData.secondaryColor
+        playerData.secondaryColor,
+        playerData.glow
     };
 
     for (auto& entry : playerLevelList) {
