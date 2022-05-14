@@ -73,6 +73,7 @@ void playerLeaveLevel(unsigned int netID) {
 
 int main()
 {
+    fmt::print("Starting Server ...\n");
     if (enet_initialize() != 0)
     {
         fmt::print("An error occurred while initializing ENet.\n");
@@ -86,6 +87,8 @@ int main()
     address.host = ENET_HOST_ANY;
     address.port = 23973;
 
+    fmt::print("Using port {}\n", address.port);
+
     server = enet_host_create(&address,
         1024,
         1,
@@ -97,6 +100,8 @@ int main()
         fmt::print("An error occurred while trying to create an ENet server host.\n");
         exit(EXIT_FAILURE);
     }
+
+    fmt::print("Server started!\n");
 
     while (true)
     {
