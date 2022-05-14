@@ -31,7 +31,6 @@ void updateRenderData(unsigned int netID, RenderData renderData) {
 }
 
 void updatePlayerData(unsigned int netID, ServerPlayerData playerData) {
-    /*
     ClientPlayerData clientPlayerData = {
         netID,
         playerData.cube,
@@ -56,7 +55,6 @@ void updatePlayerData(unsigned int netID, ServerPlayerData playerData) {
             if (peer) Packet(UPDATE_PLAYER_DATA, sizeof(clientPlayerData), reinterpret_cast<uint8_t*>(&clientPlayerData)).send(peer);
         }
     }
-    */
 }
 
 void playerLeaveLevel(unsigned int netID) {
@@ -151,11 +149,11 @@ int main()
 						
                         ENetPeer* peer = peerReference[peerId];
 
+                        Packet(UPDATE_PLAYER_DATA, sizeof(ClientPlayerData), reinterpret_cast<uint8_t*>(&playerDataList[peerId])).send(event.peer);
+
                         if (peer) {
                             Packet(PLAYER_JOIN_LEVEL, 4, reinterpret_cast<uint8_t*>(&netID)).send(peer);
                         }
-
-                        Packet(UPDATE_PLAYER_DATA, sizeof(ClientPlayerData), reinterpret_cast<uint8_t*>(&playerDataList[peerId])).send(event.peer);
                     }
 
                     break;
