@@ -30,17 +30,12 @@ void OnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t
         if (player == playerMap.end())
             break;
 
-        // TODO: Find a better way to do this
-        for (auto levelData : levelList)
+        if (player->second.levelId.has_value())
         {
-            auto second = levelData.second;
-            if (std::find(second.begin(), second.end(), player) == second.end())
-                continue;
-
-            for (Player levelPlayer : second)
+            for (auto levelPlayer : levelList[player->second.levelId.value()])
             {
                 Packet(LEAVE_LEVEL, sizeof(int), reinterpret_cast<uint8_t *>(player->second.playerId)).send(interface, levelPlayer.connection);
-            }
+            };
         };
 
         playerMap.erase(player);
@@ -169,7 +164,7 @@ int main()
         fmt::print("PlayerId {} -> Host\nPacket Length: {}\nPacket Type: {}\nPacket's Data Length: {}\nHex:", player.playerId, incomingMessage->m_cbSize, packet->type, packet->length);
         for (int x = 0; x < incomingMessage->m_cbSize; x++)
         {
-            fmt::print(" {:#04x}", packet[x]);
+            // fmt::print(" {:#04x}", packet->operator[](x));
         }
         fmt::print("\n\n");
 
@@ -177,14 +172,14 @@ int main()
         {
         case (RENDER_DATA):
         {
-            if (player.levelId == NULL)
+            if (!player.levelId.has_value())
                 break;
 
             IncomingRenderData incomingRenderData;
             incomingRenderData.playerId = player.playerId;
             incomingRenderData.renderData = *reinterpret_cast<RenderData *>(packet->data);
 
-            for (auto levelPlayer : levelList[player.levelId])
+            for (auto levelPlayer : levelList[player.levelId.value()])
             {
                 if (levelPlayer.playerId == player.playerId)
                     continue;
@@ -198,9 +193,9 @@ int main()
         {
             player.username = std::string(reinterpret_cast<char *>(packet->data));
 
-            if (player.levelId != NULL)
+            if (player.levelId.has_value())
             {
-                for (auto levelPlayer : levelList[player.levelId])
+                for (auto levelPlayer : levelList[player.levelId.value()])
                 {
                     if (levelPlayer.playerId == player.playerId)
                         continue;
@@ -224,9 +219,9 @@ int main()
             incomingIconData.playerId = player.playerId;
             incomingIconData.iconData = player.iconData;
 
-            if (player.levelId != NULL)
+            if (player.levelId.has_value())
             {
-                for (auto levelPlayer : levelList[player.levelId])
+                for (auto levelPlayer : levelList[player.levelId.value()])
                 {
                     if (levelPlayer.playerId == player.playerId)
                         continue;
@@ -245,9 +240,9 @@ int main()
             incomingColorData.playerId = player.playerId;
             incomingColorData.colorData = player.colorData;
 
-            if (player.levelId != NULL)
+            if (player.levelId.has_value())
             {
-                for (auto levelPlayer : levelList[player.levelId])
+                for (auto levelPlayer : levelList[player.levelId.value()])
                 {
                     if (levelPlayer.playerId == player.playerId)
                         continue;
@@ -260,9 +255,9 @@ int main()
         ////////////////////////////////
         case (JOIN_LEVEL):
         {
-            if (player.levelId != NULL)
+            if (player.levelId.has_value())
                 break;
-            player.levelId = *reinterpret_cast<int *>(packet->data);
+            player.levelId.value() = *reinterpret_cast<int *>(packet->data);
 
             IncomingIconData playerIncomingIconData;
             playerIncomingIconData.playerId = player.playerId;
@@ -276,7 +271,7 @@ int main()
             playerIncomingUsername.playerId = player.playerId;
             playerIncomingUsername.username = (char *)player.username.c_str();
 
-            for (auto levelPlayer : levelList[player.levelId])
+            for (auto levelPlayer : levelList[player.levelId.value()])
             {
                 IncomingIconData incomingIconData;
                 incomingIconData.playerId = levelPlayer.playerId;
@@ -304,26 +299,26 @@ int main()
                 Packet(JOIN_LEVEL, sizeof(int), reinterpret_cast<uint8_t *>(player.playerId)).send(interface, levelPlayer.connection);
             }
 
-            levelList[player.levelId].push_back(player);
+            levelList[player.levelId.value()].push_back(player);
             break;
         }
 
         case (LEAVE_LEVEL):
         {
-            if (player.levelId == NULL)
+            if (!player.levelId.has_value())
                 break;
 
-            for (auto levelPlayer : levelList[player.levelId])
+            for (auto levelPlayer : levelList[player.levelId.value()])
             {
                 Packet(LEAVE_LEVEL, sizeof(int), reinterpret_cast<uint8_t *>(player.playerId)).send(interface, levelPlayer.connection);
             }
 
             // Jesus, CoPilot, Calm down bro-
-            levelList[player.levelId].erase(std::remove_if(levelList[player.levelId].begin(), levelList[player.levelId].end(), [player](Player levelPlayer)
-                                                           { return levelPlayer.playerId == player.playerId; }),
-                                            levelList[player.levelId].end());
+            levelList[player.levelId.value()].erase(std::remove_if(levelList[player.levelId.value()].begin(), levelList[player.levelId.value()].end(), [player](Player levelPlayer)
+                                                                   { return levelPlayer.playerId == player.playerId; }),
+                                                    levelList[player.levelId.value()].end());
 
-            player.levelId = NULL;
+            player.levelId.reset();
             break;
         }
         };

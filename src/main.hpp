@@ -17,7 +17,7 @@ struct Player {
     HSteamNetConnection connection;
     ///////////////////////////////////////
     int playerId;
-    int levelId;
+    std::optional<int> levelId;
     ///////////////////////////////////////
     std::string username; // Unused for now
     IconData iconData;
