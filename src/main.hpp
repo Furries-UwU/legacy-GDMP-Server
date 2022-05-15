@@ -24,3 +24,5 @@ struct Player {
     IconData iconData;
     ColorData colorData;
 };
+
+int main();

@@ -102,14 +102,14 @@ int main()
 {
     int port = 23973; // Make this a cmd option
 
+    fmt::print("Starting server...\n");
+
     SteamDatagramErrMsg errMsg;
     if (!GameNetworkingSockets_Init(nullptr, errMsg))
     {
         fmt::print("GameNetworkingSockets_Init failed. {}", errMsg);
         return 1;
     }
-
-    fmt::print("Starting server...\n");
 
     nInterface = SteamNetworkingSockets();
 
@@ -164,7 +164,7 @@ int main()
         fmt::print("PlayerId {} -> Host\nPacket Length: {}\nPacket Type: {}\nPacket's Data Length: {}\nHex:", player.playerId, incomingMessage->m_cbSize, packet->type, packet->length);
         for (int x = 0; x < incomingMessage->m_cbSize; x++)
         {
-            fmt::print(" {:#04x}", packet[x]);
+            fmt::print(" {:#04x}", packet->operator[](x));
         }
         fmt::print("\n\n");
 
