@@ -5,7 +5,7 @@ std::unordered_map<HSteamNetConnection, Player> playerMap;
 // LevelId, std::vector<Player>
 std::unordered_map<int, std::vector<Player>> levelList;
 
-ISteamNetworkingSockets *interface;
+ISteamNetworkingSockets *nInterface;
 HSteamNetPollGroup pollGroup;
 HSteamListenSocket socket;
 
@@ -34,13 +34,13 @@ void OnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t
         {
             for (auto levelPlayer : levelList[player->second.levelId.value()])
             {
-                Packet(LEAVE_LEVEL, sizeof(int), reinterpret_cast<uint8_t *>(player->second.playerId)).send(interface, levelPlayer.connection);
+                Packet(LEAVE_LEVEL, sizeof(int), reinterpret_cast<uint8_t *>(player->second.playerId)).send(nInterface, levelPlayer.connection);
             };
         };
 
         playerMap.erase(player);
 
-        interface->CloseConnection(statusInfo->m_hConn, 0, nullptr, false);
+        nInterface->CloseConnection(statusInfo->m_hConn, 0, nullptr, false);
         break;
     }
 
@@ -51,16 +51,16 @@ void OnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t
             break;
         }
 
-        if (interface->AcceptConnection(statusInfo->m_hConn) != k_EResultOK)
+        if (nInterface->AcceptConnection(statusInfo->m_hConn) != k_EResultOK)
         {
-            interface->CloseConnection(statusInfo->m_hConn, 0, nullptr, false);
+            nInterface->CloseConnection(statusInfo->m_hConn, 0, nullptr, false);
             fmt::print("Can't accept connection. (It was already closed?)");
             break;
         }
 
-        if (!interface->SetConnectionPollGroup(statusInfo->m_hConn, pollGroup))
+        if (!nInterface->SetConnectionPollGroup(statusInfo->m_hConn, pollGroup))
         {
-            interface->CloseConnection(statusInfo->m_hConn, 0, nullptr, false);
+            nInterface->CloseConnection(statusInfo->m_hConn, 0, nullptr, false);
             fmt::print("Failed to set poll group?");
             break;
         }
@@ -85,17 +85,17 @@ void OnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t
 
 void sendIconData(HSteamNetConnection connection, IncomingIconData incomingIconData)
 {
-    Packet(ICON_DATA, sizeof(incomingIconData), reinterpret_cast<uint8_t *>(&incomingIconData)).send(interface, connection);
+    Packet(ICON_DATA, sizeof(incomingIconData), reinterpret_cast<uint8_t *>(&incomingIconData)).send(nInterface, connection);
 }
 
 void sendColorData(HSteamNetConnection connection, IncomingColorData incomingColorData)
 {
-    Packet(COLOR_DATA, sizeof(incomingColorData), reinterpret_cast<uint8_t *>(&incomingColorData)).send(interface, connection);
+    Packet(COLOR_DATA, sizeof(incomingColorData), reinterpret_cast<uint8_t *>(&incomingColorData)).send(nInterface, connection);
 }
 
 void sendUsername(HSteamNetConnection connection, IncomingUsername incomingUsername, int nameLength)
 {
-    Packet(USERNAME, sizeof(int) + nameLength, reinterpret_cast<uint8_t *>(&incomingUsername)).send(interface, connection);
+    Packet(USERNAME, sizeof(int) + nameLength, reinterpret_cast<uint8_t *>(&incomingUsername)).send(nInterface, connection);
 }
 
 int main()
@@ -111,7 +111,7 @@ int main()
 
     fmt::print("Starting server...\n");
 
-    interface = SteamNetworkingSockets();
+    nInterface = SteamNetworkingSockets();
 
     SteamNetworkingIPAddr serverLocalAddr;
     serverLocalAddr.Clear();
@@ -120,14 +120,14 @@ int main()
     SteamNetworkingConfigValue_t opt;
     opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void *)OnSteamNetConnectionStatusChanged);
 
-    socket = interface->CreateListenSocketIP(serverLocalAddr, 1, &opt);
+    socket = nInterface->CreateListenSocketIP(serverLocalAddr, 1, &opt);
     if (socket == k_HSteamListenSocket_Invalid)
     {
         fmt::print("Failed to listen on port {}\n", port);
         return 1;
     }
 
-    pollGroup = interface->CreatePollGroup();
+    pollGroup = nInterface->CreatePollGroup();
     if (pollGroup == k_HSteamNetPollGroup_Invalid)
     {
         fmt::print("Failed to listen on port {}\n", port);
@@ -141,7 +141,7 @@ int main()
     while (true)
     {
         ISteamNetworkingMessage *incomingMessage = nullptr;
-        int numMsgs = interface->ReceiveMessagesOnPollGroup(pollGroup, &incomingMessage, 1);
+        int numMsgs = nInterface->ReceiveMessagesOnPollGroup(pollGroup, &incomingMessage, 1);
 
         if (numMsgs == 0)
             continue;
@@ -183,7 +183,7 @@ int main()
             {
                 if (levelPlayer.playerId == player.playerId)
                     continue;
-                Packet(RENDER_DATA, sizeof(incomingRenderData), reinterpret_cast<uint8_t *>(&incomingRenderData)).send(interface, levelPlayer.connection);
+                Packet(RENDER_DATA, sizeof(incomingRenderData), reinterpret_cast<uint8_t *>(&incomingRenderData)).send(nInterface, levelPlayer.connection);
             }
 
             break;
@@ -296,7 +296,7 @@ int main()
                 sendUsername(levelPlayer.connection, playerIncomingUsername, player.username.length() + 1);
 
                 // Finally, Send JOIN_LEVEL packet
-                Packet(JOIN_LEVEL, sizeof(int), reinterpret_cast<uint8_t *>(player.playerId)).send(interface, levelPlayer.connection);
+                Packet(JOIN_LEVEL, sizeof(int), reinterpret_cast<uint8_t *>(player.playerId)).send(nInterface, levelPlayer.connection);
             }
 
             levelList[player.levelId.value()].push_back(player);
@@ -310,7 +310,7 @@ int main()
 
             for (auto levelPlayer : levelList[player.levelId.value()])
             {
-                Packet(LEAVE_LEVEL, sizeof(int), reinterpret_cast<uint8_t *>(player.playerId)).send(interface, levelPlayer.connection);
+                Packet(LEAVE_LEVEL, sizeof(int), reinterpret_cast<uint8_t *>(player.playerId)).send(nInterface, levelPlayer.connection);
             }
 
             // Jesus, CoPilot, Calm down bro-
@@ -328,10 +328,10 @@ int main()
 
     // Clean up
 
-    interface->CloseListenSocket(socket);
+    nInterface->CloseListenSocket(socket);
     socket = k_HSteamListenSocket_Invalid;
 
-    interface->DestroyPollGroup(pollGroup);
+    nInterface->DestroyPollGroup(pollGroup);
     pollGroup = k_HSteamNetPollGroup_Invalid;
 
     return 0;
