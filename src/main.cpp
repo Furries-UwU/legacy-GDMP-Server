@@ -164,7 +164,7 @@ int main()
         fmt::print("PlayerId {} -> Host\nPacket Length: {}\nPacket Type: {}\nPacket's Data Length: {}\nHex:", player.playerId, incomingMessage->m_cbSize, packet->type, packet->length);
         for (int x = 0; x < incomingMessage->m_cbSize; x++)
         {
-            // fmt::print(" {:#04x}", packet->operator[](x));
+            fmt::print(" {:#04x}", packet[x]);
         }
         fmt::print("\n\n");
 
@@ -322,6 +322,8 @@ int main()
             break;
         }
         };
+
+        incomingMessage->Release();
     }
 
     // Clean up
