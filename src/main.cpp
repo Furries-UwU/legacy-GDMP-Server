@@ -98,10 +98,9 @@ void sendColorData(HSteamNetConnection connection, IncomingColorData incomingCol
     Packet(COLOR_DATA, sizeof(incomingColorData), reinterpret_cast<uint8_t *>(&incomingColorData)).send(interface, connection);
 }
 
-void sendUsername(HSteamNetConnection connection, std::string username)
+void sendUsername(HSteamNetConnection connection, IncomingUsername incomingUsername, int nameLength)
 {
-    // TODO: Work on this
-    // Packet(USERNAME, username.size() + 1, reinterpret_cast<uint8_t *>((char *)username.c_str())).send(interface, connection);
+    Packet(USERNAME, sizeof(int) + nameLength, reinterpret_cast<uint8_t *>(&incomingUsername)).send(interface, connection);
 }
 
 int main()
@@ -205,7 +204,12 @@ int main()
                 {
                     if (levelPlayer.playerId == player.playerId)
                         continue;
-                    sendUsername(levelPlayer.connection, player.username);
+
+                    IncomingUsername incomingUsername;
+                    incomingUsername.playerId = player.playerId;
+                    incomingUsername.username = (char *)player.username.c_str();
+
+                    sendUsername(levelPlayer.connection, incomingUsername, player.username.length() + 1);
                 }
             }
 
@@ -268,6 +272,10 @@ int main()
             playerIncomingColorData.playerId = player.playerId;
             playerIncomingColorData.colorData = player.colorData;
 
+            IncomingUsername playerIncomingUsername;
+            playerIncomingUsername.playerId = player.playerId;
+            playerIncomingUsername.username = (char *)player.username.c_str();
+
             for (auto levelPlayer : levelList[player.levelId])
             {
                 IncomingIconData incomingIconData;
@@ -278,15 +286,19 @@ int main()
                 incomingColorData.playerId = levelPlayer.playerId;
                 incomingColorData.colorData = levelPlayer.colorData;
 
+                IncomingUsername incomingUsername;
+                incomingUsername.playerId = levelPlayer.playerId;
+                incomingUsername.username = (char *)levelPlayer.username.c_str();
+
                 // Send player data to the person who join level
                 sendIconData(incomingMessage->m_conn, incomingIconData);
                 sendColorData(incomingMessage->m_conn, incomingColorData);
-                sendUsername(incomingMessage->m_conn, levelPlayer.username);
+                sendUsername(incomingMessage->m_conn, incomingUsername, levelPlayer.username.length() + 1);
 
                 // Send the player data to the persno who's in the level
                 sendIconData(levelPlayer.connection, playerIncomingIconData);
                 sendColorData(levelPlayer.connection, playerIncomingColorData);
-                sendUsername(levelPlayer.connection, player.username);
+                sendUsername(levelPlayer.connection, playerIncomingUsername, player.username.length() + 1);
 
                 // Finally, Send JOIN_LEVEL packet
                 Packet(JOIN_LEVEL, sizeof(int), reinterpret_cast<uint8_t *>(player.playerId)).send(interface, levelPlayer.connection);
@@ -299,7 +311,7 @@ int main()
         case (LEAVE_LEVEL):
         {
             if (player.levelId == NULL)
-                return;
+                break;
 
             for (auto levelPlayer : levelList[player.levelId])
             {
