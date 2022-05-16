@@ -5,10 +5,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(GDMP-Server)
 
+add_subdirectory(external/GDMP-Shared)
+
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS src/*.cpp src/*.hpp src/*.c src/*.h)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
-
-add_subdirectory(external/GDMP-Shared)
 
 target_link_libraries(${PROJECT_NAME} GDMP-Shared)
