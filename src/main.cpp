@@ -65,27 +65,36 @@ int main() {
                 }
 
                 case (ENET_EVENT_TYPE_RECEIVE): {
+                    Player senderPlayer = playerMap[event.peer];
+                    auto packet = Packet::serialize(event.packet);
+
+                    fmt::print("Host -> Me\nPacket Length: {}\nHex:", event.packet->dataLength);
+                    for (int x = 0; x < event.packet->dataLength; x++) {
+                        fmt::print(" {:#04x}", (char) event.packet->data[x]);
+                    }
+                    fmt::print("\n\n");
+
                     if (event.packet->dataLength < 5) {
                         fmt::print(stderr, "Received packet with invalid size.\n");
                         break;
                     }
 
-                    Player senderPlayer = playerMap[event.peer];
-                    auto packet = Packet::serialize(event.packet);
-
                     switch (packet.type) {
                         case (JOIN_LEVEL): {
-                            if (packet.length != 4) {
+                            if (packet.length < 4) {
                                 fmt::print(stderr, "Received invalid packet.\n");
                                 break;
                             }
 
                             int levelId = *reinterpret_cast<int *>(packet.data);
+                            fmt::print("Player {} joined level {}\n", senderPlayer.playerId, levelId);
 
                             //TODO: Get player data here
 
                             for (auto &player: levelList[levelId]) {
                                 // TODO: Send PlayerData
+
+                                Packet(JOIN_LEVEL, sizeof(int), reinterpret_cast<uint8_t*>(senderPlayer.playerId)).sendPacket(player.peer);
                             }
 
                             break;
