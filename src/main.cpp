@@ -68,9 +68,10 @@ int main() {
                     Player senderPlayer = playerMap[event.peer];
                     auto packet = Packet::serialize(event.packet);
 
-                    fmt::print("Host -> Me\nPacket Length: {}\nHex:", event.packet->dataLength);
+                    fmt::print("Me -> Player {}\nPacket Length: {}\nPacket Type: {}\nPacket's Data Length: {}\nHex:", senderPlayer.playerId, event.packet->dataLength,
+                               packet.type, packet.length);
                     for (int x = 0; x < event.packet->dataLength; x++) {
-                        fmt::print(" {:#04x}", (char) event.packet->data[x]);
+                        fmt::print(" {:#04x}", event.packet->data[x]);
                     }
                     fmt::print("\n\n");
 
