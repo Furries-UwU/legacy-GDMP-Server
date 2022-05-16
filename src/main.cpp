@@ -28,11 +28,12 @@ int main() {
 
 
     server = enet_host_create(&address,
-                              4096,
+                              2048,
                               1,
                               0,
                               0);
-    if (server == nullptr) {
+
+    if (server == NULL) {
         fmt::print(stderr, "An error occurred while trying to create an ENet server host.\n");
         exit(EXIT_FAILURE);
     }
@@ -43,7 +44,7 @@ int main() {
 
     while (true) {
         ENetEvent event;
-        while (enet_host_service(server, &event, 1000) > 0) {
+        while (enet_host_service(server, &event, 0) > 0) {
 
             switch (event.type) {
                 case (ENET_EVENT_TYPE_CONNECT): {
@@ -140,9 +141,9 @@ int main() {
 
             enet_packet_destroy(event.packet);
         }
-
-        // Clean up
-        enet_host_destroy(server);
-        return 0;
     }
+
+    // Clean up
+    enet_host_destroy(server);
+    return 0;
 }
