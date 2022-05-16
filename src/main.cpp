@@ -1,338 +1,148 @@
 #include "main.hpp"
 
 // HSteamNetConnection, Player
-std::unordered_map<HSteamNetConnection, Player> playerMap;
+std::unordered_map<ENetPeer *, Player> playerMap;
 // LevelId, std::vector<Player>
 std::unordered_map<int, std::vector<Player>> levelList;
 
-ISteamNetworkingSockets *nInterface;
-HSteamNetPollGroup pollGroup;
-HSteamListenSocket socket;
+ENetPeer *peer;
 
 int lastPlayerId = 0;
 
-/////////////////////////
-
-void OnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t *statusInfo)
-{
-    switch (statusInfo->m_info.m_eState)
-    {
-    case k_ESteamNetworkingConnectionState_None:
-        break;
-
-    case k_ESteamNetworkingConnectionState_ClosedByPeer:
-    case k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
-    {
-        if (statusInfo->m_eOldState != k_ESteamNetworkingConnectionState_Connected)
-            break;
-
-        auto player = playerMap.find(statusInfo->m_hConn);
-        if (player == playerMap.end())
-            break;
-
-        if (player->second.levelId.has_value())
-        {
-            for (auto levelPlayer : levelList[player->second.levelId.value()])
-            {
-                Packet(LEAVE_LEVEL, sizeof(int), reinterpret_cast<uint8_t *>(player->second.playerId)).send(nInterface, levelPlayer.connection);
-            };
-        };
-
-        playerMap.erase(player);
-
-        nInterface->CloseConnection(statusInfo->m_hConn, 0, nullptr, false);
-        break;
-    }
-
-    case k_ESteamNetworkingConnectionState_Connecting:
-    {
-        if (playerMap.find(statusInfo->m_hConn) != playerMap.end())
-        {
-            break;
-        }
-
-        if (nInterface->AcceptConnection(statusInfo->m_hConn) != k_EResultOK)
-        {
-            nInterface->CloseConnection(statusInfo->m_hConn, 0, nullptr, false);
-            fmt::print("Can't accept connection. (It was already closed?)");
-            break;
-        }
-
-        if (!nInterface->SetConnectionPollGroup(statusInfo->m_hConn, pollGroup))
-        {
-            nInterface->CloseConnection(statusInfo->m_hConn, 0, nullptr, false);
-            fmt::print("Failed to set poll group?");
-            break;
-        }
-
-        playerMap[statusInfo->m_hConn] = {
-            statusInfo->m_hConn,
-            lastPlayerId++};
-
-        break;
-    }
-
-    case k_ESteamNetworkingConnectionState_Connected:
-        break;
-
-    default:
-        // Silences -Wswitch
-        break;
-    }
-}
-
-/////////////////////////
-
-void sendIconData(HSteamNetConnection connection, IncomingIconData incomingIconData)
-{
-    Packet(ICON_DATA, sizeof(incomingIconData), reinterpret_cast<uint8_t *>(&incomingIconData)).send(nInterface, connection);
-}
-
-void sendColorData(HSteamNetConnection connection, IncomingColorData incomingColorData)
-{
-    Packet(COLOR_DATA, sizeof(incomingColorData), reinterpret_cast<uint8_t *>(&incomingColorData)).send(nInterface, connection);
-}
-
-void sendUsername(HSteamNetConnection connection, IncomingUsername incomingUsername, int nameLength)
-{
-    Packet(USERNAME, sizeof(int) + nameLength, reinterpret_cast<uint8_t *>(&incomingUsername)).send(nInterface, connection);
-}
-
-int main()
-{
+int main() {
     int port = 23973; // Make this a cmd option
 
     fmt::print("Starting server...\n");
 
-    SteamDatagramErrMsg errMsg;
-    if (!GameNetworkingSockets_Init(nullptr, errMsg))
-    {
-        fmt::print("GameNetworkingSockets_Init failed. {}", errMsg);
-        return 1;
+    if (enet_initialize() != 0) {
+        fmt::print(stderr, "An error occurred while initializing ENet.\n");
+        return EXIT_FAILURE;
     }
+    atexit(enet_deinitialize);
 
-    nInterface = SteamNetworkingSockets();
+    ENetAddress address;
+    ENetHost *server;
 
-    SteamNetworkingIPAddr serverLocalAddr;
-    serverLocalAddr.Clear();
-    serverLocalAddr.m_port = port;
+    address.host = ENET_HOST_ANY;
+    address.port = port;
 
-    SteamNetworkingConfigValue_t opt;
-    opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void *)OnSteamNetConnectionStatusChanged);
 
-    socket = nInterface->CreateListenSocketIP(serverLocalAddr, 1, &opt);
-    if (socket == k_HSteamListenSocket_Invalid)
-    {
-        fmt::print("Failed to listen on port {}\n", port);
-        return 1;
-    }
-
-    pollGroup = nInterface->CreatePollGroup();
-    if (pollGroup == k_HSteamNetPollGroup_Invalid)
-    {
-        fmt::print("Failed to listen on port {}\n", port);
-        return 1;
+    server = enet_host_create(&address,
+                              4096,
+                              1,
+                              0,
+                              0);
+    if (server == nullptr) {
+        fmt::print(stderr, "An error occurred while trying to create an ENet server host.\n");
+        exit(EXIT_FAILURE);
     }
 
     fmt::print("Server listening on port {}\n", port);
 
     // Event Loop
 
-    while (true)
-    {
-        ISteamNetworkingMessage *incomingMessage = nullptr;
-        int numMsgs = nInterface->ReceiveMessagesOnPollGroup(pollGroup, &incomingMessage, 1);
+    while (true) {
+        ENetEvent event;
+        while (enet_host_service(server, &event, 1000) > 0) {
 
-        if (numMsgs == 0)
-            continue;
+            switch (event.type) {
+                case (ENET_EVENT_TYPE_CONNECT): {
+                    fmt::print("Client connected from {}:{}\n", event.peer->address.host, event.peer->address.port);
+                    playerMap[event.peer] = Player{event.peer, lastPlayerId++};
+                    break;
+                }
 
-        if (numMsgs < 0)
-        {
-            fmt::print("Error checking for messages");
-            return 1;
-        }
+                case (ENET_EVENT_TYPE_DISCONNECT): {
+                    fmt::print("Client disconnected from {}:{}\n", event.peer->address.host, event.peer->address.port);
 
-        if (incomingMessage->m_cbSize < 5)
-        {
-            fmt::print("Recieved invalid packet");
-            continue;
-        }
+                    Player senderPlayer = playerMap[event.peer];
 
-        Player player = playerMap[incomingMessage->m_conn];
-        Packet *packet = reinterpret_cast<Packet *>(&incomingMessage->m_pData);
+                    // TODO: Send player left message to all players in the same level
 
-        fmt::print("PlayerId {} -> Host\nPacket Length: {}\nPacket Type: {}\nPacket's Data Length: {}\nHex:", player.playerId, incomingMessage->m_cbSize, packet->type, packet->length);
-        for (int x = 0; x < incomingMessage->m_cbSize; x++)
-        {
-            fmt::print(" {:#04x}", packet->operator[](x));
-        }
-        fmt::print("\n\n");
+                    playerMap.erase(event.peer);
+                    break;
+                }
 
-        switch (packet->type)
-        {
-        case (RENDER_DATA):
-        {
-            if (!player.levelId.has_value())
-                break;
+                case (ENET_EVENT_TYPE_RECEIVE): {
+                    if (event.packet->dataLength < 5) {
+                        fmt::print(stderr, "Received packet with invalid size.\n");
+                        break;
+                    }
 
-            IncomingRenderData incomingRenderData;
-            incomingRenderData.playerId = player.playerId;
-            incomingRenderData.renderData = *reinterpret_cast<RenderData *>(packet->data);
+                    Player senderPlayer = playerMap[event.peer];
+                    auto packet = Packet::serialize(event.packet);
 
-            for (auto levelPlayer : levelList[player.levelId.value()])
-            {
-                if (levelPlayer.playerId == player.playerId)
-                    continue;
-                Packet(RENDER_DATA, sizeof(incomingRenderData), reinterpret_cast<uint8_t *>(&incomingRenderData)).send(nInterface, levelPlayer.connection);
-            }
+                    switch (packet.type) {
+                        case (JOIN_LEVEL): {
+                            if (packet.length != 4) {
+                                fmt::print(stderr, "Received invalid packet.\n");
+                                break;
+                            }
 
-            break;
-        }
+                            int levelId = *reinterpret_cast<int *>(packet.data);
 
-        case (USERNAME):
-        {
-            player.username = std::string(reinterpret_cast<char *>(packet->data));
+                            //TODO: Get player data here
 
-            if (player.levelId.has_value())
-            {
-                for (auto levelPlayer : levelList[player.levelId.value()])
-                {
-                    if (levelPlayer.playerId == player.playerId)
-                        continue;
+                            for (auto &player: levelList[levelId]) {
+                                // TODO: Send PlayerData
+                            }
 
-                    IncomingUsername incomingUsername;
-                    incomingUsername.playerId = player.playerId;
-                    incomingUsername.username = (char *)player.username.c_str();
+                            break;
+                        }
 
-                    sendUsername(levelPlayer.connection, incomingUsername, player.username.length() + 1);
+                        case (LEAVE_LEVEL): {
+                            if (!senderPlayer.levelId.has_value()) break;
+
+                            int levelId = *senderPlayer.levelId;
+
+                            for (auto &player: levelList[levelId]) {
+                                Packet(LEAVE_LEVEL, sizeof(int),
+                                       reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).sendPacket(event.peer);
+                            }
+
+                            levelList[levelId].erase(
+                                    std::remove_if(levelList[levelId].begin(), levelList[levelId].end(),
+                                                   [senderPlayer](Player &player) {
+                                                       return player.playerId == senderPlayer.playerId;
+                                                   }), levelList[levelId].end());
+
+                            senderPlayer.levelId = std::nullopt;
+                            break;
+                        }
+
+                            /////////////////////////////////////////////////////
+                        case (RENDER_DATA): {
+                            if (!senderPlayer.levelId.has_value())
+                                break;
+
+                            int levelId = *senderPlayer.levelId;
+
+                            auto renderData = json(*reinterpret_cast<uint8_t *>(packet.data),
+                                                   packet.length).get<RenderData>();
+
+                            auto incomingRenderData = json::to_bson(
+                                    json(IncomingRenderData{senderPlayer.playerId, renderData}));
+
+                            for (auto &player: levelList[levelId]) {
+                                if (player.playerId == senderPlayer.playerId) continue;
+
+                                Packet(RENDER_DATA, incomingRenderData.size(),
+                                       reinterpret_cast<uint8_t *>(incomingRenderData.data()))
+                                        .sendPacket(player.peer);
+                            }
+                            break;
+                        }
+                    }
+
+                    break;
                 }
             }
 
-            break;
+            enet_packet_destroy(event.packet);
         }
 
-        case (ICON_DATA):
-        {
-            player.iconData = *reinterpret_cast<IconData *>(packet->data);
-
-            IncomingIconData incomingIconData;
-            incomingIconData.playerId = player.playerId;
-            incomingIconData.iconData = player.iconData;
-
-            if (player.levelId.has_value())
-            {
-                for (auto levelPlayer : levelList[player.levelId.value()])
-                {
-                    if (levelPlayer.playerId == player.playerId)
-                        continue;
-                    sendIconData(levelPlayer.connection, incomingIconData);
-                }
-            }
-
-            break;
-        }
-
-        case (COLOR_DATA):
-        {
-            player.colorData = *reinterpret_cast<ColorData *>(packet->data);
-
-            IncomingColorData incomingColorData;
-            incomingColorData.playerId = player.playerId;
-            incomingColorData.colorData = player.colorData;
-
-            if (player.levelId.has_value())
-            {
-                for (auto levelPlayer : levelList[player.levelId.value()])
-                {
-                    if (levelPlayer.playerId == player.playerId)
-                        continue;
-                    sendColorData(levelPlayer.connection, incomingColorData);
-                }
-            }
-
-            break;
-        }
-        ////////////////////////////////
-        case (JOIN_LEVEL):
-        {
-            if (player.levelId.has_value())
-                break;
-            player.levelId.value() = *reinterpret_cast<int *>(packet->data);
-
-            IncomingIconData playerIncomingIconData;
-            playerIncomingIconData.playerId = player.playerId;
-            playerIncomingIconData.iconData = player.iconData;
-
-            IncomingColorData playerIncomingColorData;
-            playerIncomingColorData.playerId = player.playerId;
-            playerIncomingColorData.colorData = player.colorData;
-
-            IncomingUsername playerIncomingUsername;
-            playerIncomingUsername.playerId = player.playerId;
-            playerIncomingUsername.username = (char *)player.username.c_str();
-
-            for (auto levelPlayer : levelList[player.levelId.value()])
-            {
-                IncomingIconData incomingIconData;
-                incomingIconData.playerId = levelPlayer.playerId;
-                incomingIconData.iconData = levelPlayer.iconData;
-
-                IncomingColorData incomingColorData;
-                incomingColorData.playerId = levelPlayer.playerId;
-                incomingColorData.colorData = levelPlayer.colorData;
-
-                IncomingUsername incomingUsername;
-                incomingUsername.playerId = levelPlayer.playerId;
-                incomingUsername.username = (char *)levelPlayer.username.c_str();
-
-                // Send player data to the person who join level
-                sendIconData(incomingMessage->m_conn, incomingIconData);
-                sendColorData(incomingMessage->m_conn, incomingColorData);
-                sendUsername(incomingMessage->m_conn, incomingUsername, levelPlayer.username.length() + 1);
-
-                // Send the player data to the persno who's in the level
-                sendIconData(levelPlayer.connection, playerIncomingIconData);
-                sendColorData(levelPlayer.connection, playerIncomingColorData);
-                sendUsername(levelPlayer.connection, playerIncomingUsername, player.username.length() + 1);
-
-                // Finally, Send JOIN_LEVEL packet
-                Packet(JOIN_LEVEL, sizeof(int), reinterpret_cast<uint8_t *>(player.playerId)).send(nInterface, levelPlayer.connection);
-            }
-
-            levelList[player.levelId.value()].push_back(player);
-            break;
-        }
-
-        case (LEAVE_LEVEL):
-        {
-            if (!player.levelId.has_value())
-                break;
-
-            for (auto levelPlayer : levelList[player.levelId.value()])
-            {
-                Packet(LEAVE_LEVEL, sizeof(int), reinterpret_cast<uint8_t *>(player.playerId)).send(nInterface, levelPlayer.connection);
-            }
-
-            // Jesus, CoPilot, Calm down bro-
-            levelList[player.levelId.value()].erase(std::remove_if(levelList[player.levelId.value()].begin(), levelList[player.levelId.value()].end(), [player](Player levelPlayer)
-                                                                   { return levelPlayer.playerId == player.playerId; }),
-                                                    levelList[player.levelId.value()].end());
-
-            player.levelId.reset();
-            break;
-        }
-        };
-
-        incomingMessage->Release();
+        // Clean up
+        enet_host_destroy(server);
+        return 0;
     }
-
-    // Clean up
-
-    nInterface->CloseListenSocket(socket);
-    socket = k_HSteamListenSocket_Invalid;
-
-    nInterface->DestroyPollGroup(pollGroup);
-    pollGroup = k_HSteamNetPollGroup_Invalid;
-
-    return 0;
 }
