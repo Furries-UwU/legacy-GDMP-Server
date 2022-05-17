@@ -96,9 +96,7 @@ int main() {
                             fmt::print("Player {} joined level {}\n", senderPlayer.playerId, levelId);
                             playerMap[event.peer].levelId = levelId;
 
-                            fmt::print("uwu\n");
                             levelList[levelId].push_back(senderPlayer);
-                            fmt::print("owo\n");
 
                             //TODO: Get player data here
 
@@ -106,13 +104,11 @@ int main() {
                                 //if(player.playerId == senderPlayer.playerId) continue;
                                 // TODO: Send PlayerData
 
-                                fmt::print("hm\n");
-                                fmt::print("peer null: {}", player.peer == nullptr);
+                                fmt::print("peer null: {}\n", player.peer == nullptr);
                                 if (player.peer) {
                                     //Packet(S2C_UPDATE_PLAYER_DATA, sizeof(ClientPlayerData), reinterpret_cast<uint8_t*>(&playerDataList[netID])).send(peer);
                                     Packet(X2X_JOIN_LEVEL, 4, reinterpret_cast<uint8_t*>(&senderPlayer.playerId)).send(player.peer);
                                 }
-                                fmt::print("hmmm\n");
                             }
 
                             break;
