@@ -15,12 +15,11 @@
 struct Player {
     ENetPeer* peer;
     ///////////////////////////////////////
-    int playerId;
+    unsigned int playerId;
     std::optional<int> levelId;
     ///////////////////////////////////////
     std::string username;
-    ColorData colorData;
-    IconData iconData;
+    ServerPlayerData renderData;
 };
 
 int main();
