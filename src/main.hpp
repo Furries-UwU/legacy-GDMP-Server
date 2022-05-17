@@ -12,14 +12,19 @@
 #include "packet.hpp"
 #include "enum.hpp"
 
+struct PlayerData {
+    IconData iconData;
+    ColorData colorData;
+};
+
 struct Player {
     ENetPeer* peer;
     ///////////////////////////////////////
-    unsigned int playerId;
+    int playerId;
     std::optional<int> levelId;
     ///////////////////////////////////////
     std::string username;
-    ServerPlayerData renderData;
+    PlayerData playerData;
 };
 
 int main();

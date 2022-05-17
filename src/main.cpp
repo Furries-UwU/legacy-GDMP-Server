@@ -6,7 +6,7 @@ std::unordered_map<ENetPeer *, Player> playerMap;
 // LevelId, std::vector<Player>
 std::unordered_map<int, std::vector<Player>> levelList;
 
-unsigned int lastPlayerId = 0;
+int lastPlayerId = 0;
 
 int main() {
     int port = 23973; // Make this a cmd option
@@ -59,10 +59,9 @@ int main() {
                     Player senderPlayer = playerMap[event.peer];
 
                     // no idea if this works
-                    for (auto& player : levelList[senderPlayer.levelId.value()]) {
-                        // TODO: Send PlayerData
-
-                        Packet(X2X_LEAVE_LEVEL, 4, reinterpret_cast<uint8_t*>(&senderPlayer.playerId)).send(player.peer);
+                    for (auto &player: levelList[senderPlayer.levelId.value()]) {
+                        Packet(LEAVE_LEVEL, 4, reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).send(
+                                player.peer);
                     }
 
                     playerMap.erase(event.peer);
@@ -86,7 +85,7 @@ int main() {
                     }
 
                     switch (packet.type) {
-                        case (X2X_JOIN_LEVEL): {
+                        case (JOIN_LEVEL): {
                             if (packet.length < 4) {
                                 fmt::print(stderr, "Received invalid packet.\n");
                                 break;
@@ -101,20 +100,21 @@ int main() {
                             //TODO: Get player data here
 
                             for (auto &player: levelList[levelId]) {
-                                //if(player.playerId == senderPlayer.playerId) continue;
+                                if (player.playerId == senderPlayer.playerId) continue;
                                 // TODO: Send PlayerData
 
                                 fmt::print("peer null: {}\n", player.peer == nullptr);
                                 if (player.peer) {
                                     //Packet(S2C_UPDATE_PLAYER_DATA, sizeof(ClientPlayerData), reinterpret_cast<uint8_t*>(&playerDataList[netID])).send(peer);
-                                    Packet(X2X_JOIN_LEVEL, 4, reinterpret_cast<uint8_t*>(&senderPlayer.playerId)).send(player.peer);
+                                    Packet(JOIN_LEVEL, 4, reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).send(
+                                            player.peer);
                                 }
                             }
 
                             break;
                         }
 
-                        case (X2X_LEAVE_LEVEL): {
+                        case (LEAVE_LEVEL): {
                             if (!senderPlayer.levelId.has_value()) break;
 
                             int levelId = *senderPlayer.levelId;
@@ -122,7 +122,7 @@ int main() {
                             fmt::print("Player {} left level {}\n", senderPlayer.playerId, levelId);
 
                             for (auto &player: levelList[levelId]) {
-                                Packet(X2X_LEAVE_LEVEL, sizeof(int),
+                                Packet(LEAVE_LEVEL, sizeof(int),
                                        reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).send(event.peer);
                             }
 
@@ -137,7 +137,7 @@ int main() {
                         }
 
                             /////////////////////////////////////////////////////
-                        case (C2S_RENDER_DATA): {
+                        case (RENDER_DATA): {
                             if (!senderPlayer.levelId.has_value()) {
                                 fmt::print("cringe\n");
                                 break;
@@ -145,24 +145,25 @@ int main() {
 
                             int levelId = *senderPlayer.levelId;
 
-                            auto renderData = *reinterpret_cast<RenderData*>(packet.data);
+                            auto renderData = *reinterpret_cast<RenderData *>(packet.data);
 
                             fmt::print("Player {}: P1[{} {}]\t P2[{} {}]\n", senderPlayer.playerId,
-                                       renderData.playerOne.posX, renderData.playerOne.posY,
-                                       renderData.playerTwo.posX, renderData.playerTwo.posY);
+                                       renderData.playerOne.position.x, renderData.playerOne.position.y,
+                                       renderData.playerTwo.position.x, renderData.playerTwo.position.y);
 
                             for (auto &player: levelList[levelId]) {
                                 if (player.playerId == senderPlayer.playerId) continue;
 
-                                PlayerRenderData playerRenderData = {
+                                IncomingRenderData incomingRenderData = {
                                         senderPlayer.playerId,
                                         renderData.playerOne,
                                         renderData.playerTwo,
-                                        renderData.visible,
-                                        renderData.dual
+                                        renderData.isVisible,
+                                        renderData.isDual
                                 };
 
-                                Packet(S2C_UPDATE_PLAYER_RENDER_DATA, sizeof(playerRenderData), reinterpret_cast<uint8_t*>(&playerRenderData)).send(player.peer);
+                                Packet(RENDER_DATA, sizeof(incomingRenderData),
+                                       reinterpret_cast<uint8_t *>(&incomingRenderData)).send(player.peer);
                             }
                             break;
                         }
@@ -171,7 +172,8 @@ int main() {
                     break;
                 }
                 case ENET_EVENT_TYPE_NONE:
-                    // idk lol
+                    // idk lol - rooot
+                    // this is not possible - hayper
                     break;
             }
 
