@@ -12,11 +12,6 @@
 #include "packet.hpp"
 #include "enum.hpp"
 
-struct PlayerData {
-    IconData iconData;
-    ColorData colorData;
-};
-
 struct Player {
     ENetPeer* peer;
     ///////////////////////////////////////
@@ -24,7 +19,6 @@ struct Player {
     std::optional<int> levelId;
     ///////////////////////////////////////
     std::string username;
-    PlayerData playerData;
 };
 
 int main();

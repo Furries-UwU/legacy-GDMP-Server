@@ -1,5 +1,5 @@
-#include <algorithm>
 #include "main.hpp"
+#include <algorithm>
 
 // HSteamNetConnection, Player
 std::unordered_map<ENetPeer *, Player> playerMap;
@@ -60,8 +60,8 @@ int main() {
 
                     // no idea if this works
                     for (auto &player: levelList[senderPlayer.levelId.value()]) {
-                        Packet(LEAVE_LEVEL, 4, reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).send(
-                                player.peer);
+                        if (player.playerId == senderPlayer.playerId) continue;
+                        Packet(LEAVE_LEVEL, 4, reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).send(player.peer);
                     }
 
                     playerMap.erase(event.peer);
@@ -106,8 +106,7 @@ int main() {
                                 fmt::print("peer null: {}\n", player.peer == nullptr);
                                 if (player.peer) {
                                     //Packet(S2C_UPDATE_PLAYER_DATA, sizeof(ClientPlayerData), reinterpret_cast<uint8_t*>(&playerDataList[netID])).send(peer);
-                                    Packet(JOIN_LEVEL, 4, reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).send(
-                                            player.peer);
+                                    Packet(JOIN_LEVEL, 4, reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).send(player.peer);
                                 }
                             }
 
@@ -122,8 +121,9 @@ int main() {
                             fmt::print("Player {} left level {}\n", senderPlayer.playerId, levelId);
 
                             for (auto &player: levelList[levelId]) {
-                                Packet(LEAVE_LEVEL, sizeof(int),
-                                       reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).send(event.peer);
+                                if (player.playerId == senderPlayer.playerId) continue;
+
+                                Packet(LEAVE_LEVEL, 4, reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).send(event.peer);
                             }
 
                             levelList[levelId].erase(
@@ -147,9 +147,9 @@ int main() {
 
                             auto renderData = *reinterpret_cast<RenderData *>(packet.data);
 
-                            fmt::print("Player {}: P1[{} {}]\t P2[{} {}]\n", senderPlayer.playerId,
+                            /*fmt::print("Player {}: P1[{} {}]\t P2[{} {}]\n", senderPlayer.playerId,
                                        renderData.playerOne.position.x, renderData.playerOne.position.y,
-                                       renderData.playerTwo.position.x, renderData.playerTwo.position.y);
+                                       renderData.playerTwo.position.x, renderData.playerTwo.position.y);*/
 
                             for (auto &player: levelList[levelId]) {
                                 if (player.playerId == senderPlayer.playerId) continue;
@@ -174,6 +174,7 @@ int main() {
                 case ENET_EVENT_TYPE_NONE:
                     // idk lol - rooot
                     // this is not possible - hayper
+                    // i thought but clion complained about this being missing in the switch so I added it because why not - rooot
                     break;
             }
 
