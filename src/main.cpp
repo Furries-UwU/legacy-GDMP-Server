@@ -125,7 +125,8 @@ int main()
                         if (player.peer)
                         {
                             Packet(JOIN_LEVEL, 4, reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).send(player.peer);
-                            
+                            Packet(JOIN_LEVEL, 4, reinterpret_cast<uint8_t *>(&player.playerId)).send(senderPlayer.peer);
+
                             Packet(RENDER_DATA, sizeof(senderPlayer.renderData), reinterpret_cast<uint8_t *>(&senderPlayer.renderData)).send(player.peer);
                             Packet(RENDER_DATA, sizeof(player.renderData), reinterpret_cast<uint8_t *>(&senderPlayer.renderData)).send(senderPlayer.peer);
                         }
