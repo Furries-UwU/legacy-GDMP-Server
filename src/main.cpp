@@ -65,6 +65,8 @@ int main()
 
                 Player senderPlayer = playerMap[event.peer];
 
+                if (!senderPlayer.levelId.has_value()) break;
+
                 // no idea if this works
                 for (auto &player : levelList[senderPlayer.levelId.value()])
                 {
