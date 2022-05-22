@@ -1,7 +1,6 @@
 #include "main.hpp"
-#include <algorithm>
 
-// HSteamNetConnection, Player
+// ENetPeer, Player
 std::unordered_map<ENetPeer *, Player> playerMap;
 // LevelId, std::vector<Player>
 std::unordered_map<int, std::vector<Player>> levelList;
@@ -123,7 +122,6 @@ int main()
                         fmt::print("peer null: {}\n", player.peer == nullptr);
                         if (player.peer)
                         {
-                            // Packet(S2C_UPDATE_PLAYER_DATA, sizeof(ClientPlayerData), reinterpret_cast<uint8_t*>(&playerDataList[netID])).send(peer);
                             Packet(JOIN_LEVEL, 4, reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).send(player.peer);
                         }
                     }
