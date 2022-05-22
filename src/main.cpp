@@ -113,22 +113,23 @@ int main()
 
                     levelList[levelId].push_back(senderPlayer);
 
-                    // TODO: Get player data here
+                    // TODO: Get sendPlayer player data here
 
-                    for (auto &player : levelList[levelId])
+                    for (auto &levelPlayer : levelList[levelId])
                     {
-                        if (player.playerId == senderPlayer.playerId)
+                        if (levelPlayer.playerId == senderPlayer.playerId)
                             continue;
-                        // TODO: Send PlayerData
 
-                        fmt::print("peer null: {}\n", player.peer == nullptr);
-                        if (player.peer)
+                        fmt::print("peer null: {}\n", levelPlayer.peer == nullptr);
+                        if (levelPlayer.peer)
                         {
-                            Packet(JOIN_LEVEL, 4, reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).send(player.peer);
-                            Packet(JOIN_LEVEL, 4, reinterpret_cast<uint8_t *>(&player.playerId)).send(senderPlayer.peer);
+                            // TODO: Send PlayerData
 
-                            Packet(RENDER_DATA, sizeof(senderPlayer.renderData), reinterpret_cast<uint8_t *>(&senderPlayer.renderData)).send(player.peer);
-                            Packet(RENDER_DATA, sizeof(player.renderData), reinterpret_cast<uint8_t *>(&senderPlayer.renderData)).send(senderPlayer.peer);
+                            Packet(JOIN_LEVEL, 4, reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).send(levelPlayer.peer);
+                            Packet(JOIN_LEVEL, 4, reinterpret_cast<uint8_t *>(&levelPlayer.playerId)).send(senderPlayer.peer);
+
+                            Packet(RENDER_DATA, sizeof(senderPlayer.renderData), reinterpret_cast<uint8_t *>(&senderPlayer.renderData)).send(levelPlayer.peer);
+                            Packet(RENDER_DATA, sizeof(levelPlayer.renderData), reinterpret_cast<uint8_t *>(&levelPlayer.renderData)).send(senderPlayer.peer);
                         }
                     }
 
@@ -180,12 +181,12 @@ int main()
                     senderPlayer.renderData = renderData;
 
                     /*fmt::print("Player {}: P1[{} {}]\t P2[{} {}]\n", senderPlayer.playerId,
-                               renderData.playerOne.position.x, renderData.playerOne.position.y,
+                               renderData.playerOne.po`sition.x, renderData.playerOne.position.y,
                                renderData.playerTwo.position.x, renderData.playerTwo.position.y);*/
 
-                    for (auto &player : levelList[levelId])
+                    for (auto &levelPlayer : levelList[levelId])
                     {
-                        if (player.playerId == senderPlayer.playerId)
+                        if (levelPlayer.playerId == senderPlayer.playerId)
                             continue;
 
                         IncomingRenderData incomingRenderData = {
@@ -197,7 +198,7 @@ int main()
 
                         Packet(RENDER_DATA, sizeof(incomingRenderData),
                                reinterpret_cast<uint8_t *>(&incomingRenderData))
-                            .send(player.peer);
+                            .send(levelPlayer.peer);
                     }
                     break;
                 }
