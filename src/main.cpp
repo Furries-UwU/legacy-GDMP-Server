@@ -123,6 +123,7 @@ int main()
                         if (player.peer)
                         {
                             Packet(JOIN_LEVEL, 4, reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).send(player.peer);
+                            Packet(RENDER_DATA, sizeof(senderPlayer.renderData), reinterpret_cast<uint8_t *>(&senderPlayer.renderData)).send(player.peer);
                         }
                     }
 
@@ -170,6 +171,8 @@ int main()
                     int levelId = *senderPlayer.levelId;
 
                     auto renderData = *reinterpret_cast<RenderData *>(packet.data);
+
+                    senderPlayer.renderData = renderData;
 
                     /*fmt::print("Player {}: P1[{} {}]\t P2[{} {}]\n", senderPlayer.playerId,
                                renderData.playerOne.position.x, renderData.playerOne.position.y,
