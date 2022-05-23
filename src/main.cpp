@@ -81,7 +81,7 @@ int main() {
                     }
                     fmt::print("\n\n");
 
-                    if (event.packet->dataLength < sizeof(Packet)) {
+                    if (event.packet->dataLength < 5) {
                         fmt::print(stderr, "Received packet with invalid size.\n");
                         break;
                     }
