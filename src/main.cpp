@@ -73,7 +73,8 @@ int main() {
                     Player senderPlayer = playerMap[event.peer];
                     auto packet = Packet(event.packet);
 
-                    fmt::print("Player {} -> Server\tPacket Length: {}\tPacket Type: {}\tPacket's Data Length: {}\n", senderPlayer.playerId, event.packet->dataLength,
+                    fmt::print("Player {} -> Server\tPacket Length: {}\tPacket Type: {}\tPacket's Data Length: {}\n",
+                               senderPlayer.playerId, event.packet->dataLength,
                                packet.type, packet.length);
                     for (int x = 0; x < event.packet->dataLength; x++) {
                         fmt::print(" {:#04x}", event.packet->data[x]);
