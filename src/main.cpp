@@ -100,6 +100,8 @@ int main() {
                                            reinterpret_cast<uint8_t *>(&incomingIconData)).send(levelPlayer.peer);
                                 }
                             }
+
+                            break;
                         }
 
                         case (COLOR_DATA): {
@@ -116,6 +118,8 @@ int main() {
                                            reinterpret_cast<uint8_t *>(&incomingColorData)).send(levelPlayer.peer);
                                 }
                             }
+
+                            break;
                         }
 
                         case (JOIN_LEVEL): {
