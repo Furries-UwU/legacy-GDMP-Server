@@ -73,24 +73,20 @@ int main() {
                     Player senderPlayer = playerMap[event.peer];
                     auto packet = Packet(event.packet);
 
-                    /*fmt::print("Player {} -> Server\tPacket Length: {}\tPacket Type: {}\tPacket's Data Length: {}\n", senderPlayer.playerId, event.packet->dataLength,
+                    fmt::print("Player {} -> Server\tPacket Length: {}\tPacket Type: {}\tPacket's Data Length: {}\n", senderPlayer.playerId, event.packet->dataLength,
                                packet.type, packet.length);
                     for (int x = 0; x < event.packet->dataLength; x++) {
                         fmt::print(" {:#04x}", event.packet->data[x]);
                     }
-                    fmt::print("\n\n");*/
+                    fmt::print("\n\n");
 
-                    if (event.packet->dataLength < 5) {
+                    if (event.packet->dataLength < sizeof(Packet)) {
                         fmt::print(stderr, "Received packet with invalid size.\n");
                         break;
                     }
 
                     switch (packet.type) {
                         case (ICON_DATA): {
-                            if (sizeof(IconData) + sizeof(Packet) > event.packet->dataLength) {
-                                fmt::print(stderr, "Received packet with invalid size.\n");
-                                break;
-                            }
                             IconData iconData = *reinterpret_cast<IconData *>(packet.data);
                             senderPlayer.iconData = iconData;
 
@@ -107,10 +103,6 @@ int main() {
                         }
 
                         case (COLOR_DATA): {
-                            if (sizeof(ColorData) + sizeof(Packet) > event.packet->dataLength) {
-                                fmt::print(stderr, "Received packet with invalid size.\n");
-                                break;
-                            }
                             ColorData colorData = *reinterpret_cast<ColorData *>(packet.data);
                             senderPlayer.colorData = colorData;
 
@@ -120,18 +112,13 @@ int main() {
                                 for (auto &levelPlayer: levelList[senderPlayer.levelId.value()]) {
                                     if (levelPlayer.playerId == senderPlayer.playerId)
                                         continue;
-                                    Packet(ICON_DATA, sizeof(incomingColorData),
+                                    Packet(COLOR_DATA, sizeof(incomingColorData),
                                            reinterpret_cast<uint8_t *>(&incomingColorData)).send(levelPlayer.peer);
                                 }
                             }
                         }
 
                         case (JOIN_LEVEL): {
-                            if (sizeof(packet) + sizeof(int) > event.packet->dataLength) {
-                                fmt::print(stderr, "Received invalid packet.\n");
-                                break;
-                            }
-
                             int levelId = *reinterpret_cast<int *>(packet.data);
                             fmt::print("Player {} joined level {}\n", senderPlayer.playerId, levelId);
                             playerMap[event.peer].levelId = levelId;
@@ -223,11 +210,6 @@ int main() {
 
                             /////////////////////////////////////////////////////
                         case (RENDER_DATA): {
-                            if (sizeof(RenderData) + sizeof(Packet) > event.packet->dataLength) {
-                                fmt::print(stderr, "Received packet with invalid size.\n");
-                                break;
-                            }
-
                             if (!senderPlayer.levelId.has_value()) {
                                 fmt::print("cringe\n");
                                 break;
