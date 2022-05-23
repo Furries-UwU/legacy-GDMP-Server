@@ -126,7 +126,7 @@ int main() {
                         case (JOIN_LEVEL): {
                             int levelId = *reinterpret_cast<int *>(packet.data);
                             fmt::print("Player {} joined level {}\n", senderPlayer.playerId, levelId);
-                            playerMap[event.peer].levelId = levelId;
+                            senderPlayer.levelId = levelId;
 
                             levelList[levelId].push_back(senderPlayer);
 
