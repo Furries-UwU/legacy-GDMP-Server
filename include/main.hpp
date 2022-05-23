@@ -18,9 +18,11 @@ struct Player {
     ///////////////////////////////////////
     int playerId;
     std::optional<int> levelId;
-    RenderData renderData;
     ///////////////////////////////////////
     std::string username;
+    RenderData renderData;
+    IconData iconData;
+    ColorData colorData;
 };
 
 int main();
