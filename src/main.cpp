@@ -87,7 +87,7 @@ int main() {
 
                     switch (packet.type) {
                         case (ICON_DATA): {
-                            if (packet.length != sizeof(IconData) + sizeof(Packet)) {
+                            if (sizeof(IconData) + sizeof(Packet) > event.packet->dataLength) {
                                 fmt::print(stderr, "Received packet with invalid size.\n");
                                 break;
                             }
@@ -107,7 +107,7 @@ int main() {
                         }
 
                         case (COLOR_DATA): {
-                            if (packet.length != sizeof(ColorData) + sizeof(Packet)) {
+                            if (sizeof(ColorData) + sizeof(Packet) > event.packet->dataLength) {
                                 fmt::print(stderr, "Received packet with invalid size.\n");
                                 break;
                             }
@@ -127,7 +127,7 @@ int main() {
                         }
 
                         case (JOIN_LEVEL): {
-                            if (packet.length < 4) {
+                            if (sizeof(packet) + sizeof(int) > event.packet->dataLength) {
                                 fmt::print(stderr, "Received invalid packet.\n");
                                 break;
                             }
@@ -223,7 +223,7 @@ int main() {
 
                             /////////////////////////////////////////////////////
                         case (RENDER_DATA): {
-                            if (packet.length != sizeof(RenderData) + sizeof(Packet)) {
+                            if (sizeof(RenderData) + sizeof(Packet) > event.packet->dataLength) {
                                 fmt::print(stderr, "Received packet with invalid size.\n");
                                 break;
                             }
