@@ -7,6 +7,12 @@ std::unordered_map<int, std::vector<Player>> levelList;
 
 int lastPlayerId = 0;
 
+char* intIpToStringIp(int ipAddress) {
+    struct in_addr ip_addr;
+    ip_addr.s_addr = ipAddress;
+    return inet_ntoa(ip_addr);
+}
+
 int main() {
     int port = 23973; // Make this a cmd option
 
@@ -47,9 +53,7 @@ int main() {
 
             switch (event.type) {
                 case (ENET_EVENT_TYPE_CONNECT): {
-                        struct in_addr ip_addr;
-                        ip_addr.s_addr = event.peer->address.host;
-                        fmt::print("Client connected from {}:{}\n", inet_ntoa(ip_addr), event.peer->address.port);
+                        fmt::print("Client connected from {}:{}\n", intIpToStringIp(event.peer->address.host), event.peer->address.port);
                         int playerId = lastPlayerId++;
                         event.peer->data = new char[sizeof(int)];
                         memcpy(event.peer->data, &playerId, sizeof(int));
@@ -60,7 +64,7 @@ int main() {
                 }
 
                 case (ENET_EVENT_TYPE_DISCONNECT): {
-                    fmt::print("Client disconnected from {}:{}\n", event.peer->address.host, event.peer->address.port);
+                    fmt::print("Client disconnected from {}:{}\n", intIpToStringIp(event.peer->address.host), event.peer->address.port);
 
                     Player senderPlayer = playerMap[*reinterpret_cast<unsigned int *>(event.peer->data)];
 
