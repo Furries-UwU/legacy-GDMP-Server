@@ -1,7 +1,7 @@
 #include "main.hpp"
 
-// ENetPeer, Player
-std::unordered_map<ENetPeer *, Player> playerMap;
+// Id, Player
+std::unordered_map<int, Player> playerMap;
 // LevelId, std::vector<Player>
 std::unordered_map<int, std::vector<Player>> levelList;
 
@@ -47,15 +47,22 @@ int main() {
 
             switch (event.type) {
                 case (ENET_EVENT_TYPE_CONNECT): {
-                    fmt::print("Client connected from {}:{}\n", event.peer->address.host, event.peer->address.port);
-                    playerMap[event.peer] = Player{event.peer, lastPlayerId++};
+                        struct in_addr ip_addr;
+                        ip_addr.s_addr = event.peer->address.host;
+                        fmt::print("Client connected from {}:{}\n", inet_ntoa(ip_addr), event.peer->address.port);
+                        int playerId = lastPlayerId++;
+                        event.peer->data = new char[sizeof(int)];
+                        memcpy(event.peer->data, &playerId, sizeof(int));
+
+                        Player player { event.peer, playerId };
+                        playerMap[playerId] = player;
                     break;
                 }
 
                 case (ENET_EVENT_TYPE_DISCONNECT): {
                     fmt::print("Client disconnected from {}:{}\n", event.peer->address.host, event.peer->address.port);
 
-                    Player senderPlayer = playerMap[event.peer];
+                    Player senderPlayer = playerMap[*reinterpret_cast<unsigned int *>(event.peer->data)];
 
                     if (!senderPlayer.levelId.has_value()) break;
 
@@ -65,12 +72,12 @@ int main() {
                         Packet(LEAVE_LEVEL, 4, reinterpret_cast<uint8_t *>(&senderPlayer.playerId)).send(player.peer);
                     }
 
-                    playerMap.erase(event.peer);
+                    playerMap.erase(senderPlayer.playerId);
                     break;
                 }
 
                 case (ENET_EVENT_TYPE_RECEIVE): {
-                    Player senderPlayer = playerMap[event.peer];
+                    Player senderPlayer = playerMap[*reinterpret_cast<unsigned int *>(event.peer->data)];
                     auto packet = Packet(event.packet);
 
                     fmt::print("Player {} -> Server\tPacket Length: {}\tPacket Type: {}\tPacket's Data Length: {}\n",
@@ -126,7 +133,7 @@ int main() {
                         case (JOIN_LEVEL): {
                             int levelId = *reinterpret_cast<int *>(packet.data);
                             fmt::print("Player {} joined level {}\n", senderPlayer.playerId, levelId);
-                            playerMap[event.peer].levelId = levelId;
+                            playerMap[senderPlayer.playerId].levelId = levelId;
 
                             levelList[levelId].push_back(senderPlayer);
 
