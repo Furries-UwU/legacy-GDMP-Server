@@ -93,9 +93,9 @@ int main() {
                     Packet packet;
                     packet.ParseFromArray(event.packet->data, event.packet->dataLength);
 
-                    fmt::print("Player {} -> Server\tPacket Length: {}\tPacket Type: {}\tPacket's Data Length: {}\n",
+                    fmt::print("Player {} -> Server\tPacket Length: {}\tPacket Type: {}\n",
                                senderPlayer.playerId, event.packet->dataLength,
-                               packet.type(), packet.length());
+                               packet.type());
                     for (int x = 0; x < event.packet->dataLength; x++) {
                         fmt::print(" {:#04x}", event.packet->data[x]);
                     }
