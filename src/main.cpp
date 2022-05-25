@@ -1,6 +1,6 @@
 #include "main.hpp"
 
-// Id, Player
+// PlayerId, Player
 std::unordered_map<int, Player> playerMap;
 // LevelId, std::vector<Player>
 std::unordered_map<int, std::vector<Player>> levelList;
@@ -45,8 +45,6 @@ int main() {
 
     // Event Loop
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
     while (true) {
         ENetEvent event;
         while (enet_host_service(server, &event, 0) > 0) {
@@ -323,7 +321,7 @@ int main() {
             enet_packet_destroy(event.packet);
         }
     }
-#pragma clang diagnostic pop
+
     enet_host_destroy(server);
     return 0;
 }
