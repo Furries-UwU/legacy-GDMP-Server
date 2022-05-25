@@ -6,12 +6,10 @@
 #include <string>
 #include <map>
 
+#include "packetUtility.hpp"
+#include "packet.pb.h"
 #include <enet/enet.h>
 #include <fmt/core.h>
-
-#include "struct.hpp"
-#include "packet.hpp"
-#include "enum.hpp"
 
 struct Player {
     ENetPeer* peer;
