@@ -145,7 +145,7 @@ int main() {
                             if (senderPlayer.levelId.has_value()) {
                                 IncomingColorData incomingColorData;
                                 incomingColorData.set_playerid(senderPlayer.playerId);
-                                *incomingColorData.colordata() = colorData;
+                                *incomingColorData.mutable_colordata() = colorData;
 
                                 Packet incomingColorDataPacket;
                                 incomingColorDataPacket.set_type(COLOR_DATA);
