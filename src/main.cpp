@@ -107,7 +107,6 @@ int main() {
 
                     switch (packet.type()) {
                         case (USERNAME): {
-
                             senderPlayer.username = packet.data();
 
                             if (!senderPlayer.levelId.has_value()) break;
