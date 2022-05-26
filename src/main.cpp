@@ -7,10 +7,13 @@ std::unordered_map<int, std::vector<Player>> levelList;
 
 int lastPlayerId = 0;
 
-char *intIpToStringIp(int ipAddress) {
-    in_addr ip_addr;
-    ip_addr.s_addr = ipAddress;
-    return inet_ntoa(ip_addr);
+std::string parseIpAddress(int address) {
+    unsigned char bytes[4];
+    bytes[0] = address & 0xFF;
+    bytes[1] = (address >> 8) & 0xFF;
+    bytes[2] = (address >> 16) & 0xFF;
+    bytes[3] = (address >> 24) & 0xFF;
+    return fmt::format("%d.%d.%d.%d", bytes[3], bytes[2], bytes[1], bytes[0]);
 }
 
 int main() {
@@ -51,7 +54,7 @@ int main() {
 
             switch (event.type) {
                 case (ENET_EVENT_TYPE_CONNECT): {
-                    fmt::print("Client connected from {}:{}\n", intIpToStringIp(event.peer->address.host),
+                    fmt::print("Client connected from {}:{}\n", parseIpAddress(event.peer->address.host),
                                event.peer->address.port);
                     int playerId = lastPlayerId++;
                     event.peer->data = new char[sizeof(int)];
@@ -63,7 +66,7 @@ int main() {
                 }
 
                 case (ENET_EVENT_TYPE_DISCONNECT): {
-                    fmt::print("Client disconnected from {}:{}\n", intIpToStringIp(event.peer->address.host),
+                    fmt::print("Client disconnected from {}:{}\n", parseIpAddress(event.peer->address.host),
                                event.peer->address.port);
 
                     Player senderPlayer = playerMap[*reinterpret_cast<int *>(event.peer->data)];
@@ -113,22 +116,21 @@ int main() {
 
                             senderPlayer.iconData = iconData;
 
-                            if (senderPlayer.levelId.has_value()) {
-                                IncomingIconData incomingIconData;
-                                incomingIconData.set_playerid(senderPlayer.playerId);
-                                incomingIconData.set_allocated_icondata(&iconData);
+                            if (!senderPlayer.levelId.has_value()) break;
+                            IncomingIconData incomingIconData;
+                            incomingIconData.set_playerid(senderPlayer.playerId);
+                            incomingIconData.set_allocated_icondata(&iconData);
 
-                                Packet packet;
-                                packet.set_type(ICON_DATA);
-                                packet.set_data(incomingIconData.SerializeAsString());
+                            Packet incomingIconDataPacket;
+                            incomingIconDataPacket.set_type(ICON_DATA);
+                            incomingIconDataPacket.set_data(incomingIconData.SerializeAsString());
 
 
-                                for (auto &levelPlayer: levelList[senderPlayer.levelId.value()]) {
-                                    if (levelPlayer.playerId == senderPlayer.playerId)
-                                        continue;
+                            for (auto &levelPlayer: levelList[senderPlayer.levelId.value()]) {
+                                if (levelPlayer.playerId == senderPlayer.playerId)
+                                    continue;
 
-                                    PacketUtility::sendPacket(packet, levelPlayer.peer);
-                                }
+                                PacketUtility::sendPacket(incomingIconDataPacket, levelPlayer.peer);
                             }
 
                             break;
@@ -145,15 +147,15 @@ int main() {
                                 incomingColorData.set_playerid(senderPlayer.playerId);
                                 incomingColorData.set_allocated_colordata(&colorData);
 
+                                Packet incomingColorDataPacket;
+                                incomingColorDataPacket.set_type(COLOR_DATA);
+                                incomingColorDataPacket.set_data(incomingColorData.SerializeAsString());
+
                                 for (auto &levelPlayer: levelList[senderPlayer.levelId.value()]) {
                                     if (levelPlayer.playerId == senderPlayer.playerId)
                                         continue;
 
-                                    Packet packet;
-                                    packet.set_type(COLOR_DATA);
-                                    packet.set_data(incomingColorData.SerializeAsString());
-
-                                    PacketUtility::sendPacket(packet, levelPlayer.peer);
+                                    PacketUtility::sendPacket(incomingColorDataPacket, levelPlayer.peer);
                                 }
                             }
 
@@ -217,19 +219,23 @@ int main() {
 
                                     Packet incomingLevelPlayerJoinPacket;
                                     incomingLevelPlayerJoinPacket.set_type(JOIN_LEVEL);
-                                    incomingLevelPlayerJoinPacket.set_data(incomingLevelPlayerJoinLevel.SerializeAsString());
+                                    incomingLevelPlayerJoinPacket.set_data(
+                                            incomingLevelPlayerJoinLevel.SerializeAsString());
 
                                     Packet incomingLevelPlayerColorDataPacket;
                                     incomingLevelPlayerColorDataPacket.set_type(COLOR_DATA);
-                                    incomingLevelPlayerColorDataPacket.set_data(incomingLevelPlayerColorData.SerializeAsString());
+                                    incomingLevelPlayerColorDataPacket.set_data(
+                                            incomingLevelPlayerColorData.SerializeAsString());
 
                                     Packet incomingLevelPlayerIconDataPacket;
                                     incomingLevelPlayerIconDataPacket.set_type(ICON_DATA);
-                                    incomingLevelPlayerIconDataPacket.set_data(incomingLevelPlayerIconData.SerializeAsString());
+                                    incomingLevelPlayerIconDataPacket.set_data(
+                                            incomingLevelPlayerIconData.SerializeAsString());
 
                                     Packet incomingLevelPlayerRenderDataPacket;
                                     incomingLevelPlayerRenderDataPacket.set_type(RENDER_DATA);
-                                    incomingLevelPlayerRenderDataPacket.set_data(incomingPlayerRenderData.SerializeAsString());
+                                    incomingLevelPlayerRenderDataPacket.set_data(
+                                            incomingPlayerRenderData.SerializeAsString());
 
                                     PacketUtility::sendPacket(incomingJoinLevelPacket, levelPlayer.peer);
                                     PacketUtility::sendPacket(incomingLevelPlayerJoinPacket, senderPlayer.peer);
