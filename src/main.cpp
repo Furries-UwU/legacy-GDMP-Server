@@ -278,6 +278,8 @@ int main() {
                                                    }),
                                     levelList[levelId].end());
 
+                            if (levelList[levelId].empty()) levelList.erase(levelId);
+
                             senderPlayer.levelId = std::nullopt;
                             break;
                         }
