@@ -16,8 +16,29 @@ std::string parseIpAddress(int address) {
     return fmt::format("{}.{}.{}.{}", bytes[3], bytes[2], bytes[1], bytes[0]);
 }
 
-int main() {
-    int port = 23973; // Make this a cmd option
+int main(int argc, char** argv) {
+    int port = 23973;
+
+    for(;;) {
+        switch (getopt(argc, argv, "p:h")) {
+
+            case 'p': {
+                port = std::stoi(optarg);
+                continue;
+            }
+
+            case '?':
+            case 'h':
+            default :
+                fmt::print("Usage: {} [-p port]\n", argv[0]);
+                return 0;
+
+            case -1:
+                break;
+        }
+
+        break;
+    }
 
     fmt::print("Starting server...\n");
 

@@ -23,4 +23,4 @@ struct Player {
     ColorData colorData;
 };
 
-int main();
+int main(int, char**);
