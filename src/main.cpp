@@ -71,20 +71,21 @@ int main() {
 
                     Player senderPlayer = playerMap[*reinterpret_cast<int *>(event.peer->data)];
 
-                    if (!senderPlayer.levelId.has_value()) break;
+                    if (senderPlayer.levelId.has_value()) {
 
-                    for (auto &player: levelList[senderPlayer.levelId.value()]) {
-                        if (player.playerId == senderPlayer.playerId)
-                            continue;
+                        for (auto &player: levelList[senderPlayer.levelId.value()]) {
+                            if (player.playerId == senderPlayer.playerId)
+                                continue;
 
-                        IncomingLeaveLevel incomingLeaveLevel;
-                        incomingLeaveLevel.set_playerid(senderPlayer.playerId);
+                            IncomingLeaveLevel incomingLeaveLevel;
+                            incomingLeaveLevel.set_playerid(senderPlayer.playerId);
 
-                        Packet packet;
-                        packet.set_type(LEAVE_LEVEL);
-                        packet.set_data(incomingLeaveLevel.SerializeAsString());
+                            Packet packet;
+                            packet.set_type(LEAVE_LEVEL);
+                            packet.set_data(incomingLeaveLevel.SerializeAsString());
 
-                        PacketUtility::sendPacket(packet, player.peer);
+                            PacketUtility::sendPacket(packet, player.peer);
+                        }
                     }
 
                     playerMap.erase(senderPlayer.playerId);
