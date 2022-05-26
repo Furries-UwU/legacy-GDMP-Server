@@ -69,6 +69,8 @@ int main(int argc, char** argv) {
 
     // Event Loop
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
     while (true) {
         ENetEvent event;
         while (enet_host_service(server, &event, 0) > 0) {
@@ -388,6 +390,7 @@ int main(int argc, char** argv) {
             enet_packet_destroy(event.packet);
         }
     }
+#pragma clang diagnostic pop
 
     enet_host_destroy(server);
     return 0;
