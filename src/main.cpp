@@ -119,7 +119,7 @@ int main() {
                             if (!senderPlayer.levelId.has_value()) break;
                             IncomingIconData incomingIconData;
                             incomingIconData.set_playerid(senderPlayer.playerId);
-                            incomingIconData.set_allocated_icondata(&iconData);
+                            *incomingIconData.mutable_icondata() = iconData;
 
                             Packet incomingIconDataPacket;
                             incomingIconDataPacket.set_type(ICON_DATA);
@@ -145,7 +145,7 @@ int main() {
                             if (senderPlayer.levelId.has_value()) {
                                 IncomingColorData incomingColorData;
                                 incomingColorData.set_playerid(senderPlayer.playerId);
-                                incomingColorData.set_allocated_colordata(&colorData);
+                                *incomingColorData.colordata() = colorData;
 
                                 Packet incomingColorDataPacket;
                                 incomingColorDataPacket.set_type(COLOR_DATA);
@@ -178,11 +178,11 @@ int main() {
 
                             IncomingIconData incomingIconData;
                             incomingIconData.set_playerid(senderPlayer.playerId);
-                            incomingIconData.set_allocated_icondata(&senderPlayer.iconData);
+                            *incomingIconData.mutable_icondata() = senderPlayer.iconData;
 
                             IncomingColorData incomingColorData;
                             incomingColorData.set_playerid(senderPlayer.playerId);
-                            incomingColorData.set_allocated_colordata(&senderPlayer.colorData);
+                            *incomingColorData.mutable_colordata() = senderPlayer.colorData;
 
                             Packet incomingIconDataPacket;
                             incomingIconDataPacket.set_type(ICON_DATA);
@@ -207,15 +207,15 @@ int main() {
 
                                     IncomingColorData incomingLevelPlayerColorData;
                                     incomingLevelPlayerColorData.set_playerid(levelPlayer.playerId);
-                                    incomingLevelPlayerColorData.set_allocated_colordata(&levelPlayer.colorData);
+                                    *incomingLevelPlayerColorData.mutable_colordata() = levelPlayer.colorData;
 
                                     IncomingIconData incomingLevelPlayerIconData;
                                     incomingLevelPlayerIconData.set_playerid(levelPlayer.playerId);
-                                    incomingLevelPlayerIconData.set_allocated_icondata(&levelPlayer.iconData);
+                                    *incomingLevelPlayerIconData.mutable_icondata() = levelPlayer.iconData;
 
                                     IncomingRenderData incomingPlayerRenderData;
                                     incomingPlayerRenderData.set_playerid(levelPlayer.playerId);
-                                    incomingPlayerRenderData.set_allocated_renderdata(&levelPlayer.renderData);
+                                    *incomingPlayerRenderData.mutable_renderdata() = levelPlayer.renderData;
 
                                     Packet incomingLevelPlayerJoinPacket;
                                     incomingLevelPlayerJoinPacket.set_type(JOIN_LEVEL);
@@ -302,7 +302,7 @@ int main() {
 
                             IncomingRenderData incomingRenderData;
                             incomingRenderData.set_playerid(senderPlayer.playerId);
-                            incomingRenderData.set_allocated_renderdata(&renderData);
+                            *incomingRenderData.mutable_renderdata() = renderData;
 
                             Packet incomingRenderDataPacket;
                             incomingRenderDataPacket.set_type(RENDER_DATA);
