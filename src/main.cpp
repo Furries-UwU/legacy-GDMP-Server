@@ -13,7 +13,7 @@ std::string parseIpAddress(int address) {
     bytes[1] = (address >> 8) & 0xFF;
     bytes[2] = (address >> 16) & 0xFF;
     bytes[3] = (address >> 24) & 0xFF;
-    return fmt::format("%d.%d.%d.%d", bytes[3], bytes[2], bytes[1], bytes[0]);
+    return fmt::format("{}.{}.{}.{}", bytes[3], bytes[2], bytes[1], bytes[0]);
 }
 
 int main() {
