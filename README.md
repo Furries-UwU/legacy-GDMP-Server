@@ -6,7 +6,7 @@ Server software for the mod
 
 ```shell
 git clone https://github.com/Furries-UwU/GDMP-Server.git --recursive
-cmake .
+cmake . -B cmake-build-release -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release
 ```
 

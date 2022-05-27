@@ -19,6 +19,7 @@ std::string parseIpAddress(int address) {
 int main(int argc, char** argv) {
     int port = 23973;
 
+#ifndef WIN32
     for(;;) {
         switch (getopt(argc, argv, "p:h")) {
 
@@ -39,6 +40,7 @@ int main(int argc, char** argv) {
 
         break;
     }
+#endif
 
     fmt::print("Starting server...\n");
 

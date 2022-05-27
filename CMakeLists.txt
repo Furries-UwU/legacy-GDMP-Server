@@ -5,6 +5,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(GDMP-Server)
 
+set(BUILD_SHARED TRUE)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR}/external/GDMP-Shared)
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR}/external/GDMP-Shared)
+
 add_subdirectory(external/GDMP-Shared)
 
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS src/*.cpp src/*.c)
