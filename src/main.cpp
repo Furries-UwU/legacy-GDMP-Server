@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
                             IconData iconData;
                             iconData.ParseFromString(packet.data());
 
-                            senderPlayer.iconData = iconData;
+                            senderPlayer.iconData = iconData.SerializeAsString();
 
                             if (!senderPlayer.levelId.has_value()) break;
                             IncomingPacket incomingIconDataPacket;
@@ -171,7 +171,7 @@ int main(int argc, char **argv) {
                             ColorData colorData;
                             colorData.ParseFromString(packet.data());
 
-                            senderPlayer.colorData = colorData;
+                            senderPlayer.colorData = colorData.SerializeAsString();
 
                             if (senderPlayer.levelId.has_value()) {
                                 IncomingPacket incomingColorDataPacket;
@@ -201,17 +201,17 @@ int main(int argc, char **argv) {
 
                             levelList[levelId].push_back(senderPlayer);
 
-                            if (levelList[levelId].empty()) break;
+                            if (1 >= levelList[levelId].size()) break;
 
                             IncomingPacket incomingIconDataPacket;
                             incomingIconDataPacket.set_type(ICON_DATA);
                             incomingIconDataPacket.set_playerid(senderPlayer.playerId);
-                            incomingIconDataPacket.set_data(senderPlayer.iconData.SerializeAsString());
+                            incomingIconDataPacket.set_data(senderPlayer.iconData);
 
                             IncomingPacket incomingColorDataPacket;
                             incomingColorDataPacket.set_type(COLOR_DATA);
                             incomingColorDataPacket.set_playerid(senderPlayer.playerId);
-                            incomingColorDataPacket.set_data(senderPlayer.colorData.SerializeAsString());
+                            incomingColorDataPacket.set_data(senderPlayer.colorData);
 
                             IncomingPacket incomingJoinLevelPacket;
                             incomingJoinLevelPacket.set_type(JOIN_LEVEL);
@@ -233,13 +233,13 @@ int main(int argc, char **argv) {
                                     incomingLevelPlayerIconDataPacket.set_type(ICON_DATA);
                                     incomingLevelPlayerIconDataPacket.set_playerid(levelPlayer.playerId);
                                     incomingLevelPlayerIconDataPacket.set_data(
-                                            levelPlayer.iconData.SerializeAsString());
+                                            levelPlayer.iconData);
 
                                     IncomingPacket incomingLevelPlayerColorDataPacket;
                                     incomingLevelPlayerColorDataPacket.set_type(COLOR_DATA);
                                     incomingLevelPlayerColorDataPacket.set_playerid(levelPlayer.playerId);
                                     incomingLevelPlayerColorDataPacket.set_data(
-                                            levelPlayer.colorData.SerializeAsString());
+                                            levelPlayer.colorData);
 
                                     IncomingPacket incomingLevelPlayerJoinPacket;
                                     incomingLevelPlayerJoinPacket.set_type(JOIN_LEVEL);
@@ -254,7 +254,7 @@ int main(int argc, char **argv) {
                                     incomingLevelPlayerRenderDataPacket.set_type(USERNAME);
                                     incomingLevelPlayerRenderDataPacket.set_playerid(levelPlayer.playerId);
                                     incomingLevelPlayerRenderDataPacket.set_data(
-                                            levelPlayer.renderData.SerializeAsString());
+                                            levelPlayer.renderData);
 
                                     PacketUtility::sendPacket(incomingJoinLevelPacket, levelPlayer.peer);
                                     PacketUtility::sendPacket(incomingLevelPlayerJoinPacket, senderPlayer.peer);
@@ -319,7 +319,7 @@ int main(int argc, char **argv) {
                             RenderData renderData;
                             renderData.ParseFromString(packet.data());
 
-                            senderPlayer.renderData = renderData;
+                            senderPlayer.renderData = renderData.SerializeAsString();
 
                             IncomingPacket incomingRenderDataPacket;
                             incomingRenderDataPacket.set_type(RENDER_DATA);
