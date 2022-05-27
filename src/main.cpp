@@ -16,7 +16,7 @@ std::string parseIpAddress(int address) {
     return fmt::format("{}.{}.{}.{}", bytes[3], bytes[2], bytes[1], bytes[0]);
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     int port = 23973;
 
 #ifndef WIN32
@@ -102,14 +102,10 @@ int main(int argc, char** argv) {
                             if (player.playerId == senderPlayer.playerId)
                                 continue;
 
-                            IncomingLeaveLevel incomingLeaveLevel;
-                            incomingLeaveLevel.set_playerid(senderPlayer.playerId);
+                            IncomingPacket incomingLeaveLevelPacket;
+                            incomingLeaveLevelPacket.set_playerid(senderPlayer.playerId);
 
-                            Packet packet;
-                            packet.set_type(LEAVE_LEVEL);
-                            packet.set_data(incomingLeaveLevel.SerializeAsString());
-
-                            PacketUtility::sendPacket(packet, player.peer);
+                            PacketUtility::sendPacket(incomingLeaveLevelPacket, player.peer);
                         }
                     }
 
@@ -136,13 +132,9 @@ int main(int argc, char** argv) {
 
                             if (!senderPlayer.levelId.has_value()) break;
 
-                            IncomingUsername incomingUsername;
-                            incomingUsername.set_playerid(senderPlayer.playerId);
-                            incomingUsername.set_username(senderPlayer.username);
-
-                            Packet incomingUsernamePacket;
-                            incomingUsernamePacket.set_type(USERNAME);
-                            incomingUsernamePacket.set_data(incomingUsername.SerializeAsString());
+                            IncomingPacket incomingUsernamePacket;
+                            incomingUsernamePacket.set_playerid(senderPlayer.playerId);
+                            incomingUsernamePacket.set_data(senderPlayer.username);
 
                             for (auto &levelPlayer: levelList[senderPlayer.levelId.value()]) {
                                 if (levelPlayer.playerId == senderPlayer.playerId)
@@ -160,14 +152,10 @@ int main(int argc, char** argv) {
                             senderPlayer.iconData = iconData;
 
                             if (!senderPlayer.levelId.has_value()) break;
-                            IncomingIconData incomingIconData;
-                            incomingIconData.set_playerid(senderPlayer.playerId);
-                            *incomingIconData.mutable_icondata() = iconData;
-
-                            Packet incomingIconDataPacket;
+                            IncomingPacket incomingIconDataPacket;
                             incomingIconDataPacket.set_type(ICON_DATA);
-                            incomingIconDataPacket.set_data(incomingIconData.SerializeAsString());
-
+                            incomingIconDataPacket.set_playerid(senderPlayer.playerId);
+                            incomingIconDataPacket.set_data(iconData.SerializeAsString());
 
                             for (auto &levelPlayer: levelList[senderPlayer.levelId.value()]) {
                                 if (levelPlayer.playerId == senderPlayer.playerId)
@@ -186,13 +174,10 @@ int main(int argc, char** argv) {
                             senderPlayer.colorData = colorData;
 
                             if (senderPlayer.levelId.has_value()) {
-                                IncomingColorData incomingColorData;
-                                incomingColorData.set_playerid(senderPlayer.playerId);
-                                *incomingColorData.mutable_colordata() = colorData;
-
-                                Packet incomingColorDataPacket;
+                                IncomingPacket incomingColorDataPacket;
                                 incomingColorDataPacket.set_type(COLOR_DATA);
-                                incomingColorDataPacket.set_data(incomingColorData.SerializeAsString());
+                                incomingColorDataPacket.set_playerid(senderPlayer.playerId);
+                                incomingColorDataPacket.set_data(colorData.SerializeAsString());
 
                                 for (auto &levelPlayer: levelList[senderPlayer.levelId.value()]) {
                                     if (levelPlayer.playerId == senderPlayer.playerId)
@@ -216,36 +201,26 @@ int main(int argc, char** argv) {
 
                             levelList[levelId].push_back(senderPlayer);
 
-                            IncomingJoinLevel incomingJoinLevel;
-                            incomingJoinLevel.set_playerid(senderPlayer.playerId);
+                            if (levelList[levelId].empty()) break;
 
-                            IncomingIconData incomingIconData;
-                            incomingIconData.set_playerid(senderPlayer.playerId);
-                            *incomingIconData.mutable_icondata() = senderPlayer.iconData;
-
-                            IncomingColorData incomingColorData;
-                            incomingColorData.set_playerid(senderPlayer.playerId);
-                            *incomingColorData.mutable_colordata() = senderPlayer.colorData;
-
-                            IncomingUsername incomingUsername;
-                            incomingUsername.set_playerid(senderPlayer.playerId);
-                            *incomingUsername.mutable_username() = senderPlayer.username;
-
-                            Packet incomingIconDataPacket;
+                            IncomingPacket incomingIconDataPacket;
                             incomingIconDataPacket.set_type(ICON_DATA);
-                            incomingIconDataPacket.set_data(incomingIconData.SerializeAsString());
+                            incomingIconDataPacket.set_playerid(senderPlayer.playerId);
+                            incomingIconDataPacket.set_data(senderPlayer.iconData.SerializeAsString());
 
-                            Packet incomingColorDataPacket;
+                            IncomingPacket incomingColorDataPacket;
                             incomingColorDataPacket.set_type(COLOR_DATA);
-                            incomingColorDataPacket.set_data(incomingColorData.SerializeAsString());
+                            incomingColorDataPacket.set_playerid(senderPlayer.playerId);
+                            incomingColorDataPacket.set_data(senderPlayer.colorData.SerializeAsString());
 
-                            Packet incomingJoinLevelPacket;
+                            IncomingPacket incomingJoinLevelPacket;
                             incomingJoinLevelPacket.set_type(JOIN_LEVEL);
-                            incomingJoinLevelPacket.set_data(incomingJoinLevel.SerializeAsString());
+                            incomingJoinLevelPacket.set_playerid(senderPlayer.playerId);
 
-                            Packet incomingUsernamePacket;
+                            IncomingPacket incomingUsernamePacket;
                             incomingUsernamePacket.set_type(USERNAME);
-                            incomingUsernamePacket.set_data(incomingUsername.SerializeAsString());
+                            incomingUsernamePacket.set_playerid(senderPlayer.playerId);
+                            incomingUsernamePacket.set_data(senderPlayer.username);
 
 
                             for (auto &levelPlayer: levelList[levelId]) {
@@ -253,49 +228,33 @@ int main(int argc, char** argv) {
                                     continue;
 
                                 if (levelPlayer.peer) {
-                                    IncomingJoinLevel incomingLevelPlayerJoinLevel;
-                                    incomingLevelPlayerJoinLevel.set_playerid(levelPlayer.playerId);
 
-                                    IncomingColorData incomingLevelPlayerColorData;
-                                    incomingLevelPlayerColorData.set_playerid(levelPlayer.playerId);
-                                    *incomingLevelPlayerColorData.mutable_colordata() = levelPlayer.colorData;
-
-                                    IncomingIconData incomingLevelPlayerIconData;
-                                    incomingLevelPlayerIconData.set_playerid(levelPlayer.playerId);
-                                    *incomingLevelPlayerIconData.mutable_icondata() = levelPlayer.iconData;
-
-                                    IncomingRenderData incomingLevelPlayerRenderData;
-                                    incomingLevelPlayerRenderData.set_playerid(levelPlayer.playerId);
-                                    *incomingLevelPlayerRenderData.mutable_renderdata() = levelPlayer.renderData;
-
-                                    IncomingUsername incomingLevelPlayerUsername;
-                                    incomingLevelPlayerUsername.set_playerid(levelPlayer.playerId);
-                                    *incomingLevelPlayerUsername.mutable_username() = levelPlayer.username;
-
-                                    Packet incomingLevelPlayerJoinPacket;
-                                    incomingLevelPlayerJoinPacket.set_type(JOIN_LEVEL);
-                                    incomingLevelPlayerJoinPacket.set_data(
-                                            incomingLevelPlayerJoinLevel.SerializeAsString());
-
-                                    Packet incomingLevelPlayerColorDataPacket;
-                                    incomingLevelPlayerColorDataPacket.set_type(COLOR_DATA);
-                                    incomingLevelPlayerColorDataPacket.set_data(
-                                            incomingLevelPlayerColorData.SerializeAsString());
-
-                                    Packet incomingLevelPlayerIconDataPacket;
+                                    IncomingPacket incomingLevelPlayerIconDataPacket;
                                     incomingLevelPlayerIconDataPacket.set_type(ICON_DATA);
+                                    incomingLevelPlayerIconDataPacket.set_playerid(levelPlayer.playerId);
                                     incomingLevelPlayerIconDataPacket.set_data(
-                                            incomingLevelPlayerIconData.SerializeAsString());
+                                            levelPlayer.iconData.SerializeAsString());
 
-                                    Packet incomingLevelPlayerRenderDataPacket;
-                                    incomingLevelPlayerRenderDataPacket.set_type(RENDER_DATA);
-                                    incomingLevelPlayerRenderDataPacket.set_data(
-                                            incomingLevelPlayerRenderData.SerializeAsString());
+                                    IncomingPacket incomingLevelPlayerColorDataPacket;
+                                    incomingLevelPlayerColorDataPacket.set_type(COLOR_DATA);
+                                    incomingLevelPlayerColorDataPacket.set_playerid(levelPlayer.playerId);
+                                    incomingLevelPlayerColorDataPacket.set_data(
+                                            levelPlayer.colorData.SerializeAsString());
 
-                                    Packet incomingLevelPlayerUsernamePacket;
+                                    IncomingPacket incomingLevelPlayerJoinPacket;
+                                    incomingLevelPlayerJoinPacket.set_type(JOIN_LEVEL);
+                                    incomingLevelPlayerJoinPacket.set_playerid(levelPlayer.playerId);
+
+                                    IncomingPacket incomingLevelPlayerUsernamePacket;
                                     incomingLevelPlayerUsernamePacket.set_type(USERNAME);
-                                    incomingLevelPlayerUsernamePacket.set_data(
-                                            incomingLevelPlayerUsername.SerializeAsString());
+                                    incomingLevelPlayerUsernamePacket.set_playerid(levelPlayer.playerId);
+                                    incomingLevelPlayerUsernamePacket.set_data(levelPlayer.username);
+
+                                    IncomingPacket incomingLevelPlayerRenderDataPacket;
+                                    incomingLevelPlayerRenderDataPacket.set_type(USERNAME);
+                                    incomingLevelPlayerRenderDataPacket.set_playerid(levelPlayer.playerId);
+                                    incomingLevelPlayerRenderDataPacket.set_data(
+                                            levelPlayer.renderData.SerializeAsString());
 
                                     PacketUtility::sendPacket(incomingJoinLevelPacket, levelPlayer.peer);
                                     PacketUtility::sendPacket(incomingLevelPlayerJoinPacket, senderPlayer.peer);
@@ -324,12 +283,9 @@ int main(int argc, char** argv) {
 
                             fmt::print("Player {} left level {}\n", senderPlayer.playerId, levelId);
 
-                            IncomingLeaveLevel incomingLeaveLevel;
-                            incomingLeaveLevel.set_playerid(senderPlayer.playerId);
-
-                            Packet incomingLeaveLevelPacket;
+                            IncomingPacket incomingLeaveLevelPacket;
                             incomingLeaveLevelPacket.set_type(LEAVE_LEVEL);
-                            incomingLeaveLevelPacket.set_data(incomingLeaveLevel.SerializeAsString());
+                            incomingLeaveLevelPacket.set_playerid(senderPlayer.playerId);
 
                             for (auto &player: levelList[levelId]) {
                                 if (player.playerId == senderPlayer.playerId)
@@ -365,13 +321,10 @@ int main(int argc, char** argv) {
 
                             senderPlayer.renderData = renderData;
 
-                            IncomingRenderData incomingRenderData;
-                            incomingRenderData.set_playerid(senderPlayer.playerId);
-                            *incomingRenderData.mutable_renderdata() = renderData;
-
-                            Packet incomingRenderDataPacket;
+                            IncomingPacket incomingRenderDataPacket;
                             incomingRenderDataPacket.set_type(RENDER_DATA);
-                            incomingRenderDataPacket.set_data(incomingRenderData.SerializeAsString());
+                            incomingRenderDataPacket.set_playerid(senderPlayer.playerId);
+                            incomingRenderDataPacket.set_data(renderData.SerializeAsString());
 
                             for (auto &levelPlayer: levelList[levelId]) {
                                 if (levelPlayer.playerId == senderPlayer.playerId)
