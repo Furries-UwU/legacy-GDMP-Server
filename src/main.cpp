@@ -8,12 +8,9 @@ std::unordered_map<int, std::vector<Player>> levelList;
 int lastPlayerId = 0;
 
 std::string parseIpAddress(int address) {
-    unsigned char bytes[4];
-    bytes[0] = address & 0xFF;
-    bytes[1] = (address >> 8) & 0xFF;
-    bytes[2] = (address >> 16) & 0xFF;
-    bytes[3] = (address >> 24) & 0xFF;
-    return fmt::format("{}.{}.{}.{}", bytes[3], bytes[2], bytes[1], bytes[0]);
+    in_addr ip_addr;
+    ip_addr.s_addr = address;
+    return inet_ntoa(ip_addr);
 }
 
 int main(int argc, char **argv) {
