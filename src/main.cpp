@@ -323,7 +323,7 @@ int main(int argc, char **argv) {
                             IncomingPacket incomingRenderDataPacket;
                             incomingRenderDataPacket.set_type(RENDER_DATA);
                             incomingRenderDataPacket.set_playerid(senderPlayer.playerId);
-                            incomingRenderDataPacket.set_data(renderData.SerializeAsString());
+                            incomingRenderDataPacket.set_data(senderPlayer.renderData);
 
                             for (auto &levelPlayer: levelList[levelId]) {
                                 if (levelPlayer.playerId == senderPlayer.playerId)
