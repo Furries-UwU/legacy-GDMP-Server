@@ -14,6 +14,8 @@ std::string parseIpAddress(int address) {
 }
 
 int main(int argc, char **argv) {
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+
     int port = 23973;
 
 #ifndef WIN32
