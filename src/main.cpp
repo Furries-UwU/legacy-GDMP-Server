@@ -103,6 +103,7 @@ int main(int argc, char **argv) {
                                 continue;
 
                             IncomingPacket incomingLeaveLevelPacket;
+                            incomingLeaveLevelPacket.set_type(LEAVE_LEVEL);
                             incomingLeaveLevelPacket.set_playerid(senderPlayer.playerId);
 
                             PacketUtility::sendPacket(incomingLeaveLevelPacket, player.peer);
@@ -133,6 +134,7 @@ int main(int argc, char **argv) {
                             if (!senderPlayer.levelId.has_value()) break;
 
                             IncomingPacket incomingUsernamePacket;
+                            incomingUsernamePacket.set_type(USERNAME);
                             incomingUsernamePacket.set_playerid(senderPlayer.playerId);
                             incomingUsernamePacket.set_data(senderPlayer.username);
 
@@ -256,9 +258,6 @@ int main(int argc, char **argv) {
                                     incomingLevelPlayerRenderDataPacket.set_data(
                                             levelPlayer.renderData);
 
-                                    PacketUtility::sendPacket(incomingJoinLevelPacket, levelPlayer.peer);
-                                    PacketUtility::sendPacket(incomingLevelPlayerJoinPacket, senderPlayer.peer);
-
                                     PacketUtility::sendPacket(incomingIconDataPacket, levelPlayer.peer);
                                     PacketUtility::sendPacket(incomingLevelPlayerIconDataPacket, senderPlayer.peer);
 
@@ -269,6 +268,9 @@ int main(int argc, char **argv) {
                                     PacketUtility::sendPacket(incomingLevelPlayerUsernamePacket, senderPlayer.peer);
 
                                     PacketUtility::sendPacket(incomingLevelPlayerRenderDataPacket, senderPlayer.peer);
+
+                                    PacketUtility::sendPacket(incomingJoinLevelPacket, levelPlayer.peer);
+                                    PacketUtility::sendPacket(incomingLevelPlayerJoinPacket, senderPlayer.peer);
                                 }
                             }
 
