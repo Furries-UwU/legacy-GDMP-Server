@@ -186,7 +186,7 @@ int main(int argc, char **argv) {
                         }
 
                         case (JOIN_LEVEL): {
-                            int levelId = *reinterpret_cast<int>(packet.bytedata().c_str());
+                            int levelId = std::stoi(packet.bytedata());
 
                             fmt::print("Player {} joined level {}\n", senderPlayer.playerId, levelId);
                             playerMap[senderPlayer.playerId].levelId = levelId;
