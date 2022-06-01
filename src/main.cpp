@@ -185,10 +185,7 @@ int main(int argc, char **argv) {
                         }
 
                         case (JOIN_LEVEL): {
-                            JoinLevel joinLevel;
-                            joinLevel.ParseFromString(packet.bytedata());
-
-                            int levelId = joinLevel.levelid();
+                            int levelId = *reinterpret_cast<int *>(packet.bytedata());
 
                             fmt::print("Player {} joined level {}\n", senderPlayer.playerId, levelId);
                             playerMap[senderPlayer.playerId].levelId = levelId;
