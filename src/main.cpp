@@ -115,6 +115,7 @@ int main(int argc, char **argv) {
 
                 case (ENET_EVENT_TYPE_RECEIVE): {
                     Player senderPlayer = playerMap[*reinterpret_cast<int *>(event.peer->data)];
+
                     Packet packet;
                     packet.ParseFromArray(event.packet->data, event.packet->dataLength);
 
@@ -185,7 +186,7 @@ int main(int argc, char **argv) {
                         }
 
                         case (JOIN_LEVEL): {
-                            int levelId = *reinterpret_cast<int *>(packet.bytedata());
+                            int levelId = *reinterpret_cast<int>(packet.bytedata().c_str());
 
                             fmt::print("Player {} joined level {}\n", senderPlayer.playerId, levelId);
                             playerMap[senderPlayer.playerId].levelId = levelId;
