@@ -136,11 +136,11 @@ int main(int argc, char **argv) {
 
                             if (1 >= levelList[levelId].size()) break;
 
-                            IncomingIconData senderIconData{senderPlayer.playerId, senderPlayer.iconData};
-                            Packet senderIconDataPacket{ICON_DATA, sizeof(senderIconData), reinterpret_cast<uint8_t *>(&senderIconData)};
+                            //IncomingIconData senderIconData{senderPlayer.playerId, senderPlayer.iconData};
+                            //Packet senderIconDataPacket{ICON_DATA, sizeof(senderIconData), reinterpret_cast<uint8_t *>(&senderIconData)};
 
-                            IncomingColorData senderColorData{senderPlayer.playerId, senderPlayer.colorData};
-                            Packet senderColorDataPacket{COLOR_DATA, sizeof(senderColorData), reinterpret_cast<uint8_t *>(&senderColorData)};
+                            //IncomingColorData senderColorData{senderPlayer.playerId, senderPlayer.colorData};
+                            //Packet senderColorDataPacket{COLOR_DATA, sizeof(senderColorData), reinterpret_cast<uint8_t *>(&senderColorData)};
 
                             Packet senderJoinLevelPacket{JOIN_LEVEL, sizeof(senderPlayer.playerId), reinterpret_cast<uint8_t *>(&senderPlayer.playerId)};
 
@@ -149,11 +149,11 @@ int main(int argc, char **argv) {
                                     continue;
 
                                 if (levelPlayer.peer) {
-                                    IncomingIconData levelPlayerIconData{levelPlayer.playerId, levelPlayer.iconData};
-                                    Packet levelPlayerIconDataPacket{ICON_DATA, sizeof(levelPlayerIconData), reinterpret_cast<uint8_t *>(&levelPlayerIconData)};
+                                    //IncomingIconData levelPlayerIconData{levelPlayer.playerId, levelPlayer.iconData};
+                                    //Packet levelPlayerIconDataPacket{ICON_DATA, sizeof(levelPlayerIconData), reinterpret_cast<uint8_t *>(&levelPlayerIconData)};
 
-                                    IncomingColorData levelPlayerColorData{levelPlayer.playerId, levelPlayer.colorData};
-                                    Packet levelPlayerColorDataPacket{COLOR_DATA, sizeof(levelPlayerColorData), reinterpret_cast<uint8_t *>(&levelPlayerColorData)};
+                                    //IncomingColorData levelPlayerColorData{levelPlayer.playerId, levelPlayer.colorData};
+                                    //Packet levelPlayerColorDataPacket{COLOR_DATA, sizeof(levelPlayerColorData), reinterpret_cast<uint8_t *>(&levelPlayerColorData)};
 
                                     IncomingRenderData levelPlayerRenderData{levelPlayer.playerId, levelPlayer.renderData};
                                     Packet levelPlayerRenderDataPacket{COLOR_DATA, sizeof(levelPlayerRenderData), reinterpret_cast<uint8_t *>(&levelPlayerRenderData)};
@@ -162,14 +162,14 @@ int main(int argc, char **argv) {
 
                                     // send packets to player that just joined
                                     levelPlayerJoinLevelPacket.send(senderPlayer.peer);
-                                    levelPlayerIconDataPacket.send(senderPlayer.peer);
-                                    levelPlayerColorDataPacket.send(senderPlayer.peer);
+                                    //levelPlayerIconDataPacket.send(senderPlayer.peer);
+                                    //levelPlayerColorDataPacket.send(senderPlayer.peer);
                                     levelPlayerRenderDataPacket.send(senderPlayer.peer);
 
                                     // send packets from the player that joined to peers
                                     senderJoinLevelPacket.send(levelPlayer.peer);
-                                    senderIconDataPacket.send(levelPlayer.peer);
-                                    senderColorDataPacket.send(levelPlayer.peer);
+                                    //senderIconDataPacket.send(levelPlayer.peer);
+                                    //senderColorDataPacket.send(levelPlayer.peer);
                                     // (do I send a RenderData packet too?)
                                 }
                             }
@@ -227,7 +227,7 @@ int main(int argc, char **argv) {
                             }
                             break;
                         }
-
+                        /*
                         case (COLOR_DATA): {
                             senderPlayer.colorData = *reinterpret_cast<ColorData*>(packet.data);
 
@@ -263,6 +263,7 @@ int main(int argc, char **argv) {
 
                             break;
                         }
+                         */
                     }
 
                     break;

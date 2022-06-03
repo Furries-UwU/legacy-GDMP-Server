@@ -18,8 +18,8 @@ struct Player {
     std::optional<int32_t> levelId;
     ///////////////////////////////////////
     RenderData renderData{};
-    IconData iconData{};
-    ColorData colorData{};
+    //IconData iconData{};
+    //ColorData colorData{};
 };
 
 int main(int, char**);
