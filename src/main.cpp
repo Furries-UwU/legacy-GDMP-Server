@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
                     fmt::print("Client disconnected from {}:{}\n", parseIpAddress(event.peer->address.host),
                                event.peer->address.port);
 
-                    Player senderPlayer = playerMap[*reinterpret_cast<int *>(event.peer->data)];
+                    Player senderPlayer = playerMap[*reinterpret_cast<uint16_t *>(event.peer->data)]; // check if this crashes
 
                     if (senderPlayer.levelId.has_value()) {
 
@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
 
                             levelList[levelId].push_back(senderPlayer);
 
-                            //if (1 >= levelList[levelId].size()) break; // commented out for debugging
+                            if (1 >= levelList[levelId].size()) break;
 
                             IncomingIconData senderIconData{senderPlayer.playerId, senderPlayer.iconData};
                             Packet senderIconDataPacket{ICON_DATA, sizeof(senderIconData), reinterpret_cast<uint8_t *>(&senderIconData)};
@@ -145,8 +145,8 @@ int main(int argc, char **argv) {
                             Packet senderJoinLevelPacket{JOIN_LEVEL, sizeof(senderPlayer.playerId), reinterpret_cast<uint8_t *>(&senderPlayer.playerId)};
 
                             for (auto &levelPlayer: levelList[levelId]) {
-                                /*if (levelPlayer.playerId == senderPlayer.playerId)
-                                    continue;*/
+                                if (levelPlayer.playerId == senderPlayer.playerId)
+                                    continue;
 
                                 if (levelPlayer.peer) {
                                     IncomingIconData levelPlayerIconData{levelPlayer.playerId, levelPlayer.iconData};
@@ -188,8 +188,8 @@ int main(int argc, char **argv) {
                             Packet senderLeaveLevelPacket{LEAVE_LEVEL, sizeof(senderPlayer.playerId), reinterpret_cast<uint8_t *>(&senderPlayer.playerId)};
 
                             for (auto &player: levelList[levelId]) {
-                                /*if (player.playerId == senderPlayer.playerId)
-                                    continue;*/
+                                if (player.playerId == senderPlayer.playerId)
+                                    continue;
 
                                 senderLeaveLevelPacket.send(player.peer);
                             }
@@ -220,8 +220,8 @@ int main(int argc, char **argv) {
                             Packet senderRenderDataPacket{RENDER_DATA, sizeof(senderRenderData), reinterpret_cast<uint8_t *>(&senderRenderData)};
 
                             for (auto &levelPlayer: levelList[levelId]) {
-                                /*if (levelPlayer.playerId == senderPlayer.playerId)
-                                    continue;*/
+                                if (levelPlayer.playerId == senderPlayer.playerId)
+                                    continue;
 
                                 senderRenderDataPacket.send(levelPlayer.peer);
                             }
@@ -236,8 +236,8 @@ int main(int argc, char **argv) {
                                 Packet senderColorDataPacket{COLOR_DATA, sizeof(senderColorData), reinterpret_cast<uint8_t *>(&senderColorData)};
 
                                 for (auto &levelPlayer: levelList[senderPlayer.levelId.value()]) {
-                                    /*if (levelPlayer.playerId == senderPlayer.playerId)
-                                        continue;*/
+                                    if (levelPlayer.playerId == senderPlayer.playerId)
+                                        continue;
 
                                     senderColorDataPacket.send(levelPlayer.peer);
                                 }
@@ -254,8 +254,8 @@ int main(int argc, char **argv) {
                                 Packet senderIconDataPacket{ICON_DATA, sizeof(senderIconData), reinterpret_cast<uint8_t *>(&senderIconData)};
 
                                 for (auto &levelPlayer: levelList[senderPlayer.levelId.value()]) {
-                                    /*if (levelPlayer.playerId == senderPlayer.playerId)
-                                        continue;*/
+                                    if (levelPlayer.playerId == senderPlayer.playerId)
+                                        continue;
 
                                     senderIconDataPacket.send(levelPlayer.peer);
                                 }

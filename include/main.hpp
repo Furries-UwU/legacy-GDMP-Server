@@ -12,14 +12,14 @@
 #include <fmt/core.h>
 
 struct Player {
-    ENetPeer* peer;
+    ENetPeer* peer{};
     ///////////////////////////////////////
-    uint16_t playerId;
+    uint16_t playerId{};
     std::optional<int32_t> levelId;
     ///////////////////////////////////////
-    RenderData renderData;
-    IconData iconData;
-    ColorData colorData;
+    RenderData renderData{};
+    IconData iconData{};
+    ColorData colorData{};
 };
 
 int main(int, char**);
