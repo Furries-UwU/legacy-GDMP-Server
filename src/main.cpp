@@ -130,19 +130,19 @@ int main(int argc, char **argv) {
                             int32_t levelId = *reinterpret_cast<int32_t *>(packet.data);
 
                             fmt::print("Player {} joined level {}\n", senderPlayer.playerId, levelId);
-                            fmt::print("0\n");playerMap[senderPlayer.playerId].levelId = levelId;
+                            playerMap[senderPlayer.playerId].levelId = levelId;
 
-                            fmt::print("1\n");levelList[levelId].push_back(senderPlayer);
+                            levelList[levelId].push_back(senderPlayer);
 
                             //if (1 >= levelList[levelId].size()) break; // commented out for debugging
 
-                            fmt::print("2\n");IncomingIconData senderIconData{senderPlayer.playerId, senderPlayer.iconData};
-                            fmt::print("3\n");Packet senderIconDataPacket{ICON_DATA, sizeof(senderIconData), reinterpret_cast<uint8_t *>(&senderIconData)};
+                            IncomingIconData senderIconData{senderPlayer.playerId, senderPlayer.iconData};
+                            Packet senderIconDataPacket{ICON_DATA, sizeof(senderIconData), reinterpret_cast<uint8_t *>(&senderIconData)};
 
-                            fmt::print("4\n");IncomingColorData senderColorData{senderPlayer.playerId, senderPlayer.colorData};
-                            fmt::print("5\n");Packet senderColorDataPacket{COLOR_DATA, sizeof(senderColorData), reinterpret_cast<uint8_t *>(&senderColorData)};
+                            IncomingColorData senderColorData{senderPlayer.playerId, senderPlayer.colorData};
+                            Packet senderColorDataPacket{COLOR_DATA, sizeof(senderColorData), reinterpret_cast<uint8_t *>(&senderColorData)};
 
-                            fmt::print("6\n");Packet senderJoinLevelPacket{JOIN_LEVEL, sizeof(senderPlayer.playerId), reinterpret_cast<uint8_t *>(&senderPlayer.playerId)};
+                            Packet senderJoinLevelPacket{JOIN_LEVEL, sizeof(senderPlayer.playerId), reinterpret_cast<uint8_t *>(&senderPlayer.playerId)};
 
                             for (auto &levelPlayer: levelList[levelId]) {
                                 /*if (levelPlayer.playerId == senderPlayer.playerId)
