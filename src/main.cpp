@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
                             if (player.playerId == senderPlayer.playerId)
                                 continue;
 
-                            Packet packet{LEAVE_LEVEL, sizeof(senderPlayer.playerId), reinterpret_cast<uint8_t *>(senderPlayer.playerId)};
+                            Packet packet{LEAVE_LEVEL, sizeof(senderPlayer.playerId), reinterpret_cast<uint8_t *>(&senderPlayer.playerId)};
                             packet.send(player.peer);
                         }
                     }
