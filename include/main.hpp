@@ -6,21 +6,20 @@
 #include <string>
 #include <map>
 
-#include "packetUtility.hpp"
-#include "packet.pb.h"
+#include "struct.hpp"
+#include "packet.hpp"
 #include <enet/enet.h>
 #include <fmt/core.h>
 
 struct Player {
     ENetPeer* peer;
     ///////////////////////////////////////
-    int playerId;
-    std::optional<int> levelId;
+    uint16_t playerId;
+    std::optional<int32_t> levelId;
     ///////////////////////////////////////
-    std::string username;
     RenderData renderData;
-    std::string iconData;
-    std::string colorData;
+    IconData iconData;
+    ColorData colorData;
 };
 
 int main(int, char**);
